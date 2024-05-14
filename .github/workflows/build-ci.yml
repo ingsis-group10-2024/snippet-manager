@@ -1,0 +1,30 @@
+name: Build and Test with Gradle
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # establece el entorno necesario para compilar y ejecutar un proyecto Java utilizando la versión 21 del JDK
+      - uses: actions/checkout@v4
+      - name: Set up JDK 18
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # Configura el entorno necesario para ejecutar tareas de Gradle como compilación, pruebas y despliegue
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+
+      - name: Build with Gradle Wrapper
+        run: ./gradlew build
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Run ktlint
+        run: ./gradlew ktlintCheck ktlintFormat
+
