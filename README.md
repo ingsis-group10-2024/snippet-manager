@@ -26,3 +26,5 @@ To run the tests and generate the code coverage reports using JaCoCo, run the fo
 ```sh
 ./gradlew test jacocoTestReport
 ```
+
+
