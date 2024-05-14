@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+
+  mysql-development:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: snippet-manager
+    ports:
+      - "3307:3306"
