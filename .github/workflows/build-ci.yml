@@ -1,6 +1,9 @@
 name: Build and Test with Gradle
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+      types: [ synchronize ]
 
 jobs:
   build:
@@ -21,9 +24,6 @@ jobs:
 
       - name: Build with Gradle Wrapper
         run: ./gradlew build
-
-      - name: Run tests
-        run: ./gradlew test
 
       - name: Run ktlint
         run: ./gradlew ktlintCheck ktlintFormat
