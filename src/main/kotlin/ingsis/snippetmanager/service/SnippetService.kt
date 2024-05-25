@@ -1,19 +1,20 @@
 package ingsis.snippetmanager.service
 
 import ingsis.snippetmanager.domains.model.Snippet
-import org.springframework.stereotype.Service
 import ingsis.snippetmanager.domains.repository.SnippetRepository
 import ingsis.snippetmanager.dto.CreateSnippetDTO
 import ingsis.snippetmanager.dto.SnippetDTO
+import org.springframework.stereotype.Service
 
 @Service
 class SnippetService(private val snippetRepository: SnippetRepository) {
 
-    fun createSnippet(snippet: CreateSnippetDTO): SnippetDTO{
-     val s = Snippet(
+    fun createSnippet(snippet: CreateSnippetDTO): SnippetDTO {
+        val s = Snippet(
             snippet.name,
             snippet.type,
-            snippet.content)
+            snippet.content
+        )
         return SnippetDTO(snippetRepository.save(s))
     }
 
@@ -37,6 +38,4 @@ class SnippetService(private val snippetRepository: SnippetRepository) {
         throw HTTPError("User must own the snippet to edit it", HttpStatus.FORBIDDEN)
     }
      */
-
-
 }

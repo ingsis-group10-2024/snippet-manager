@@ -9,13 +9,13 @@ class UpdateSnippetDTO {
 
     constructor(
         id: UUID?,
-        content: String?,
+        content: String?
     ) {
         this.id = id
         this.content = content
     }
 
-    constructor(snippet: Snippet){
+    constructor(snippet: Snippet) {
         this.content = snippet.content
         this.id = snippet.id
     }

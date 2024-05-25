@@ -35,5 +35,4 @@ class Snippet() {
         this.type = type
         this.content = content
     }
-
 }

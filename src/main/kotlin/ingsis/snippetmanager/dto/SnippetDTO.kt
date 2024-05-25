@@ -10,10 +10,9 @@ class SnippetDTO {
     var type: String? = null
     var content: String? = null
 
-    constructor(snippet: Snippet){
+    constructor(snippet: Snippet) {
         this.name = snippet.name
         this.type = snippet.type
         this.content = snippet.content
     }
-
 }
