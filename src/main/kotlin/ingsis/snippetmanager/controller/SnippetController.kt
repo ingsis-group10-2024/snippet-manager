@@ -1,6 +1,7 @@
-package controller
+package ingsis.snippetmanager.controller
 
-import model.Snippet
+import ingsis.snippetmanager.domains.model.Snippet
+import ingsis.snippetmanager.dto.CreateSnippetDTO
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -8,36 +9,30 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.multipart.MultipartFile
-import service.SnippetService
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import ingsis.snippetmanager.service.SnippetService
+import org.springframework.web.bind.annotation.CrossOrigin
+import org.springframework.web.bind.annotation.ResponseBody
+
 
 @RestController
-@RequestMapping("/snippets")
+@CrossOrigin("*")
 class SnippetController(private val snippetService: SnippetService) {
 
-    @PostMapping
-    fun createSnippet(@RequestBody snippet: Snippet): ResponseEntity<Snippet> {
-        val createdSnippet = snippetService.save(snippet)
-        return ResponseEntity(createdSnippet, HttpStatus.CREATED)
+    @PostMapping("/snippet")
+    @ResponseBody
+    fun createSnippet(@RequestBody createSnippetDto: CreateSnippetDTO): ResponseEntity<Any> {
+        return ResponseEntity(snippetService.createSnippet(createSnippetDto), HttpStatus.CREATED)
     }
 
-    @PostMapping("/upload")
-    fun uploadSnippet(
-        @RequestParam("file") file: MultipartFile,
-        @RequestParam("name") name: String,
-        @RequestParam("type") type: String,
-        @RequestParam("author") author: String
-    ): ResponseEntity<Snippet> {
-        val code = BufferedReader(InputStreamReader(file.inputStream)).use { it.readText() }
-        val snippet = Snippet(name = name, type = type, code = code, author = author)
-        val createdSnippet = snippetService.save(snippet)
-        return ResponseEntity(createdSnippet, HttpStatus.CREATED)
+    // pedir el id del usuario / o token para  verificar que sea de el el snippet a modificar
+   /*
+    @PutMapping("/snippet")
+    @ResponseBody
+    fun updateSnippet(@RequestBody snippet: UpdateSnippetDTO): ResponseEntity<SnippetDTO> {
+        return ResponseEntity(snippetService.updateSnippet(snippet), HttpStatus.OK)
     }
+    */
 
     @GetMapping("/{id}")
     fun getSnippetById(@PathVariable id: Long): ResponseEntity<Snippet?> {

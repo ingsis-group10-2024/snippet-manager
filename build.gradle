@@ -6,16 +6,16 @@ plugins {
 	id 'org.jetbrains.kotlin.jvm' version '1.9.23'
 	id 'org.jetbrains.kotlin.plugin.spring' version '1.9.23'
 	id 'org.jetbrains.kotlin.plugin.jpa' version '1.9.23'
-
     id 'org.jlleitschuh.gradle.ktlint' version "11.3.2"
     id 'jacoco'
+    id 'java'
 }
 
 group = 'ingsis'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '17'
+    sourceCompatibility = '17'
 }
 
 jacoco {
