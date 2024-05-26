@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import java.security.Principal
 
 @RestController
@@ -27,14 +29,29 @@ class SnippetController(private val snippetService: SnippetService) {
         return ResponseEntity(snippetService.createSnippet(createSnippetDto, principal.name), HttpStatus.CREATED)
     }
 
-    // pedir el id del usuario / o token para  verificar que sea de el el snippet a modificar
-   /*
-    @PutMapping("/snippet")
+    @PostMapping("/snippetFile")
     @ResponseBody
-    fun updateSnippet(@RequestBody snippet: UpdateSnippetDTO): ResponseEntity<SnippetDTO> {
-        return ResponseEntity(snippetService.updateSnippet(snippet), HttpStatus.OK)
+    fun createSnippet(
+        @RequestParam("file") file: MultipartFile,
+        @RequestParam("name") name: String,
+        @RequestParam("type") type: String,
+        principal: Principal,
+    ): ResponseEntity<Any> {
+        // Leer el contenido del archivo
+        val content = file.inputStream.bufferedReader().use { it.readText() }
+
+        return ResponseEntity(snippetService.createSnippet(name, type, content, principal.name), HttpStatus.CREATED)
     }
-    */
+
+
+    // pedir el id del usuario / o token para  verificar que sea de el el snippet a modificar
+    /*
+     @PutMapping("/snippet")
+     @ResponseBody
+     fun updateSnippet(@RequestBody snippet: UpdateSnippetDTO): ResponseEntity<SnippetDTO> {
+         return ResponseEntity(snippetService.updateSnippet(snippet), HttpStatus.OK)
+     }
+     */
 
     @GetMapping("/{id}")
     fun getSnippetById(@PathVariable id: Long): ResponseEntity<Snippet?> {

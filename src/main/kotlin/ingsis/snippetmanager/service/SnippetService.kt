@@ -5,12 +5,26 @@ import ingsis.snippetmanager.domains.repository.SnippetRepository
 import ingsis.snippetmanager.dto.CreateSnippetDTO
 import ingsis.snippetmanager.dto.SnippetDTO
 import org.springframework.stereotype.Service
+import java.util.*
 
 @Service
 class SnippetService(private val snippetRepository: SnippetRepository) {
 
     fun createSnippet(snippet: CreateSnippetDTO, username: String): SnippetDTO {
-        val s = Snippet(snippet.name, snippet.type, snippet.content, username)
+        val id = UUID.randomUUID()
+        val s = Snippet(id, snippet.name, snippet.type, snippet.content, username)
+        return SnippetDTO(snippetRepository.save(s))
+    }
+
+    fun createSnippet(name: String, type: String, content: String, username: String): SnippetDTO {
+        val id = UUID.randomUUID()
+        val s = Snippet(
+            id,
+            name,
+            type,
+            content,
+            username
+        )
         return SnippetDTO(snippetRepository.save(s))
     }
 
@@ -35,3 +49,4 @@ class SnippetService(private val snippetRepository: SnippetRepository) {
     }
      */
 }
+

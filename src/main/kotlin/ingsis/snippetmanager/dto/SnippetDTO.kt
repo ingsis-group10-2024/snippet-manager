@@ -11,8 +11,11 @@ class SnippetDTO {
     var content: String? = null
 
     constructor(snippet: Snippet) {
+        this.id = snippet.id
         this.name = snippet.name
         this.type = snippet.type
         this.content = snippet.content
     }
 }
+
+
