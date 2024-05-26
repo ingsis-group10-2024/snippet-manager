@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
+import java.security.Principal
 
 @RestController
 @RequestMapping("/snippets")
@@ -22,8 +23,8 @@ class SnippetController(private val snippetService: SnippetService) {
 
     @PostMapping
     @ResponseBody
-    fun createSnippet(@RequestBody createSnippetDto: CreateSnippetDTO): ResponseEntity<Any> {
-        return ResponseEntity(snippetService.createSnippet(createSnippetDto), HttpStatus.CREATED)
+    fun createSnippet(principal: Principal, @RequestBody createSnippetDto: CreateSnippetDTO): ResponseEntity<Any> {
+        return ResponseEntity(snippetService.createSnippet(createSnippetDto, principal.name), HttpStatus.CREATED)
     }
 
     // pedir el id del usuario / o token para  verificar que sea de el el snippet a modificar

@@ -9,12 +9,8 @@ import org.springframework.stereotype.Service
 @Service
 class SnippetService(private val snippetRepository: SnippetRepository) {
 
-    fun createSnippet(snippet: CreateSnippetDTO): SnippetDTO {
-        val s = Snippet(
-            snippet.name,
-            snippet.type,
-            snippet.content
-        )
+    fun createSnippet(snippet: CreateSnippetDTO, username: String): SnippetDTO {
+        val s = Snippet(snippet.name, snippet.type, snippet.content, username)
         return SnippetDTO(snippetRepository.save(s))
     }
 
