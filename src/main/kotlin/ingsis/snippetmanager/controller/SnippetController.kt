@@ -14,11 +14,11 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 
-@RestController
+@RestController("/snippet")
 @CrossOrigin("*")
 class SnippetController(private val snippetService: SnippetService) {
 
-    @PostMapping("/snippet")
+    @PostMapping
     @ResponseBody
     fun createSnippet(@RequestBody createSnippetDto: CreateSnippetDTO): ResponseEntity<Any> {
         return ResponseEntity(snippetService.createSnippet(createSnippetDto), HttpStatus.CREATED)
