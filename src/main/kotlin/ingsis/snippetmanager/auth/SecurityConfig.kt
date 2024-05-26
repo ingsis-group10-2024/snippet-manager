@@ -16,12 +16,12 @@ import org.springframework.security.oauth2.jwt.JwtValidators
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
 import org.springframework.security.web.SecurityFilterChain
 
-
 @Configuration
 @EnableWebSecurity
 class SecurityConfig {
     @Value("\${auth0.audience}")
     private val audience: String? = null
+
     @Value("\${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
     private val issuer: String? = null
 
@@ -46,7 +46,6 @@ class SecurityConfig {
         return http.build()
     }
 
-
     @Bean
     fun jwtDecoder(): JwtDecoder {
         val jwtDecoder = NimbusJwtDecoder.withIssuerLocation(issuer).build()
@@ -56,5 +55,4 @@ class SecurityConfig {
         jwtDecoder.setJwtValidator(withAudience)
         return jwtDecoder
     }
-
 }

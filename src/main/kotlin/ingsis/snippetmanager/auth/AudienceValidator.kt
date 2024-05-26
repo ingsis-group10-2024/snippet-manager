@@ -12,7 +12,8 @@ class AudienceValidator(private val audience: String) : OAuth2TokenValidator<Jwt
 
         return if (jwt.audience.contains(audience)) {
             OAuth2TokenValidatorResult.success()
-        } else OAuth2TokenValidatorResult.failure(error)
+        } else {
+            OAuth2TokenValidatorResult.failure(error)
+        }
     }
 }
-
