@@ -11,14 +11,16 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
+@RequestMapping("/snippets")
 @CrossOrigin("*")
 class SnippetController(private val snippetService: SnippetService) {
 
-    @PostMapping("/snippet")
+    @PostMapping
     @ResponseBody
     fun createSnippet(@RequestBody createSnippetDto: CreateSnippetDTO): ResponseEntity<Any> {
         return ResponseEntity(snippetService.createSnippet(createSnippetDto), HttpStatus.CREATED)
@@ -45,8 +47,7 @@ class SnippetController(private val snippetService: SnippetService) {
 
     @GetMapping
     fun getAllSnippets(): ResponseEntity<List<Snippet>> {
-        val snippets = snippetService.findAll()
-        return ResponseEntity(snippets, HttpStatus.OK)
+        return ResponseEntity(snippetService.findAll(), HttpStatus.OK)
     }
 
     @DeleteMapping("/{id}")
