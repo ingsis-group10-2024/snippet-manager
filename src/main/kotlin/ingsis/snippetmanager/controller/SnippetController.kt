@@ -84,4 +84,3 @@ class SnippetController(private val snippetService: SnippetService) {
         return ResponseEntity(HttpStatus.NO_CONTENT)
     }
 }
-
