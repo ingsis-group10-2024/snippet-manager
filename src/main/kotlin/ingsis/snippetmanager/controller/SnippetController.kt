@@ -73,6 +73,11 @@ class SnippetController(private val snippetService: SnippetService) {
         return ResponseEntity(snippetService.findAll(), HttpStatus.OK)
     }
 
+    @GetMapping("/me")
+    fun getMySnippets(principal: Principal): ResponseEntity<List<Snippet>> {
+        return ResponseEntity(snippetService.findByUsername(principal.name), HttpStatus.OK)
+    }
+
     @DeleteMapping("/{id}")
     fun deleteSnippet(@PathVariable id: UUID): ResponseEntity<Unit> {
         snippetService.deleteById(id)

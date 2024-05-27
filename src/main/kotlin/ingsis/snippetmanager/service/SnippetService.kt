@@ -16,6 +16,10 @@ class SnippetService(private val snippetRepository: SnippetRepository) {
         return SnippetDTO(snippetRepository.save(s))
     }
 
+    fun findByUsername(name: String): List<Snippet> {
+        return snippetRepository.findByUsername(name)
+    }
+
     fun createSnippet(name: String, type: String, content: String, username: String): SnippetDTO {
         val id = UUID.randomUUID()
         val s = Snippet(
