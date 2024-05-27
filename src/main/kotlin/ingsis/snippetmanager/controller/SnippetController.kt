@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
 import java.security.Principal
+import java.util.*
 
 @RestController
 @RequestMapping("/snippets")
@@ -43,7 +44,6 @@ class SnippetController(private val snippetService: SnippetService) {
         return ResponseEntity(snippetService.createSnippet(name, type, content, principal.name), HttpStatus.CREATED)
     }
 
-
     // pedir el id del usuario / o token para  verificar que sea de el el snippet a modificar
     /*
      @PutMapping("/snippet")
@@ -54,7 +54,7 @@ class SnippetController(private val snippetService: SnippetService) {
      */
 
     @GetMapping("/{id}")
-    fun getSnippetById(@PathVariable id: Long): ResponseEntity<Snippet?> {
+    fun getSnippetById(@PathVariable id: UUID): ResponseEntity<Snippet?> {
         val snippet = snippetService.findById(id)
         return if (snippet != null) {
             ResponseEntity(snippet, HttpStatus.OK)
@@ -69,7 +69,7 @@ class SnippetController(private val snippetService: SnippetService) {
     }
 
     @DeleteMapping("/{id}")
-    fun deleteSnippet(@PathVariable id: Long): ResponseEntity<Unit> {
+    fun deleteSnippet(@PathVariable id: UUID): ResponseEntity<Unit> {
         snippetService.deleteById(id)
         return ResponseEntity(HttpStatus.NO_CONTENT)
     }

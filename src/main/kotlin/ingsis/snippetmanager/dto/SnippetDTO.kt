@@ -17,5 +17,3 @@ class SnippetDTO {
         this.content = snippet.content
     }
 }
-
-

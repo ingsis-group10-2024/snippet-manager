@@ -28,7 +28,7 @@ class SnippetService(private val snippetRepository: SnippetRepository) {
         return SnippetDTO(snippetRepository.save(s))
     }
 
-    fun findById(id: Long): Snippet? {
+    fun findById(id: UUID): Snippet? {
         return snippetRepository.findById(id).orElse(null)
     }
 
@@ -36,7 +36,7 @@ class SnippetService(private val snippetRepository: SnippetRepository) {
         return snippetRepository.findAll()
     }
 
-    fun deleteById(id: Long) {
+    fun deleteById(id: UUID) {
         snippetRepository.deleteById(id)
     }
 
