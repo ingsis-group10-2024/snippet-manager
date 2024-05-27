@@ -2,6 +2,7 @@ package ingsis.snippetmanager.controller
 
 import ingsis.snippetmanager.domains.model.Snippet
 import ingsis.snippetmanager.dto.CreateSnippetDTO
+import ingsis.snippetmanager.dto.SnippetDTO
 import ingsis.snippetmanager.service.SnippetService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -36,7 +38,7 @@ class SnippetController(private val snippetService: SnippetService) {
         @RequestParam("file") file: MultipartFile,
         @RequestParam("name") name: String,
         @RequestParam("type") type: String,
-        principal: Principal,
+        principal: Principal
     ): ResponseEntity<Any> {
         // Leer el contenido del archivo
         val content = file.inputStream.bufferedReader().use { it.readText() }
@@ -44,15 +46,17 @@ class SnippetController(private val snippetService: SnippetService) {
         return ResponseEntity(snippetService.createSnippet(name, type, content, principal.name), HttpStatus.CREATED)
     }
 
-
     // pedir el id del usuario / o token para  verificar que sea de el el snippet a modificar
-    /*
-     @PutMapping("/snippet")
-     @ResponseBody
-     fun updateSnippet(@RequestBody snippet: UpdateSnippetDTO): ResponseEntity<SnippetDTO> {
-         return ResponseEntity(snippetService.updateSnippet(snippet), HttpStatus.OK)
-     }
-     */
+    @PutMapping("/{id}/update")
+    @ResponseBody
+    fun updateSnippet(principal: Principal, @PathVariable id: UUID, @RequestParam("file") file: MultipartFile): ResponseEntity<SnippetDTO> {
+        val snippetToSave = snippetService.findById(id) ?: return ResponseEntity(HttpStatus.NOT_FOUND)
+        if (snippetToSave.username != principal.name) {
+            return ResponseEntity(HttpStatus.FORBIDDEN)
+        }
+        val content = file.inputStream.bufferedReader().use { it.readText() }
+        return ResponseEntity(snippetService.updateSnippet(id, content, snippetToSave), HttpStatus.OK)
+    }
 
     @GetMapping("/{id}")
     fun getSnippetById(@PathVariable id: UUID): ResponseEntity<Snippet?> {

@@ -44,13 +44,8 @@ class SnippetService(private val snippetRepository: SnippetRepository) {
         snippetRepository.deleteById(id)
     }
 
-    /*
-    fun updateSnippet(snippet: UpdateSnippetDTO): SnippetDTO {
-        val snippetToSave = snippetRepository.findById(id).orElse(null)
-        snippetToSave.content = snippet.content
-        if (snippetToSave.ownerId == userId) return SnippetDTO(this.snippetRepository.save(snippetToSave))
-        throw HTTPError("User must own the snippet to edit it", HttpStatus.FORBIDDEN)
+    fun updateSnippet(id: UUID, content: String, snippet: Snippet): SnippetDTO {
+        snippet.content = content
+        return SnippetDTO(this.snippetRepository.save(snippet))
     }
-     */
 }
-
