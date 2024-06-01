@@ -25,14 +25,14 @@ class Snippet() {
     @Column(name = "content", nullable = false)
     var content: String? = null
 
-    /*
-    @Column(name = "ownerId", nullable = false)
-    var ownerId: String? = null
-     */
+    @Column(name = "username", nullable = false)
+    var username: String? = null
 
-    constructor(name: String?, type: String?, content: String?) : this() {
+    constructor(id: UUID?, name: String?, type: String?, content: String?, username: String?) : this() {
+        this.id = id
         this.name = name
         this.type = type
         this.content = content
+        this.username = username
     }
 }
