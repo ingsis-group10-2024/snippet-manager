@@ -2,7 +2,16 @@ version: '3'
 
 services:
 
-  mysql-development:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"   # Expone el puerto 8080 para acceder a la aplicación
+    depends_on:
+      - db
+
+  db:
     image: mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
