@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.time.LocalTime
 import java.util.*
 
 @Entity
@@ -28,11 +29,15 @@ class Snippet() {
     @Column(name = "username", nullable = false)
     var username: String? = null
 
-    constructor(id: UUID?, name: String?, type: String?, content: String?, username: String?) : this() {
+    @Column(nullable = false)
+    var createdAt: LocalTime? = null
+
+    constructor(id: UUID?, name: String?, type: String?, content: String?, username: String?, createdAt: LocalTime) : this() {
         this.id = id
         this.name = name
         this.type = type
         this.content = content
         this.username = username
+        this.createdAt = createdAt
     }
 }

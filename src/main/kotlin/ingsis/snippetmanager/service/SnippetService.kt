@@ -4,7 +4,10 @@ import ingsis.snippetmanager.domains.model.Snippet
 import ingsis.snippetmanager.domains.repository.SnippetRepository
 import ingsis.snippetmanager.dto.CreateSnippetDTO
 import ingsis.snippetmanager.dto.SnippetDTO
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
+import java.time.LocalTime
 import java.util.*
 
 @Service
@@ -12,7 +15,8 @@ class SnippetService(private val snippetRepository: SnippetRepository) {
 
     fun createSnippet(snippet: CreateSnippetDTO, username: String): SnippetDTO {
         val id = UUID.randomUUID()
-        val s = Snippet(id, snippet.name, snippet.type, snippet.content, username)
+        val createdAt = LocalTime.now()
+        val s = Snippet(id, snippet.name, snippet.type, snippet.content, username, createdAt)
         return SnippetDTO(snippetRepository.save(s))
     }
 
@@ -22,22 +26,28 @@ class SnippetService(private val snippetRepository: SnippetRepository) {
 
     fun createSnippet(name: String, type: String, content: String, username: String): SnippetDTO {
         val id = UUID.randomUUID()
+        val createdAt = LocalTime.now()
         val s = Snippet(
             id,
             name,
             type,
             content,
-            username
+            username,
+            createdAt
         )
         return SnippetDTO(snippetRepository.save(s))
+    }
+
+    fun findByNameContaining(name: String, pageable: Pageable): Page<Snippet> {
+        return snippetRepository.findByNameContaining(name, pageable)
     }
 
     fun findById(id: UUID): Snippet? {
         return snippetRepository.findById(id).orElse(null)
     }
 
-    fun findAll(): List<Snippet> {
-        return snippetRepository.findAll()
+    fun findAll(pageable: Pageable): Page<Snippet> {
+        return snippetRepository.findAll(pageable)
     }
 
     fun deleteById(id: UUID) {

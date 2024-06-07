@@ -4,6 +4,8 @@ import ingsis.snippetmanager.domains.model.Snippet
 import ingsis.snippetmanager.dto.CreateSnippetDTO
 import ingsis.snippetmanager.dto.SnippetDTO
 import ingsis.snippetmanager.service.SnippetService
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CrossOrigin
@@ -69,8 +71,18 @@ class SnippetController(private val snippetService: SnippetService) {
     }
 
     @GetMapping
-    fun getAllSnippets(): ResponseEntity<List<Snippet>> {
-        return ResponseEntity(snippetService.findAll(), HttpStatus.OK)
+    fun getAllSnippets(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = false) snippetName: String?,
+    ): ResponseEntity<List<Snippet>> {
+        val pageable = PageRequest.of(page, size, Sort.by("createdAt").descending())
+        val snippets = if (snippetName != null) {
+            snippetService.findByNameContaining(snippetName, pageable)
+        } else {
+            snippetService.findAll(pageable)
+        }
+        return ResponseEntity(snippets.content, HttpStatus.OK)
     }
 
     @GetMapping("/me")
