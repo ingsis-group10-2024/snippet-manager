@@ -1,0 +1,28 @@
+name: Build Project with Gradle ツ
+
+on:
+  push:
+      branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest # construye y prueba un proyecto de gradle en un entorno de ubuntu
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2 #action para configurar gradle en el entorno de ejecución
+
+      - name: Build project
+        run: ./gradlew build
