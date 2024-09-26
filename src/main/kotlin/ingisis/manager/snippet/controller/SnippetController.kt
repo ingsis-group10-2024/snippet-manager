@@ -7,9 +7,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping
-class SnippetController (
+class SnippetController(
     @Autowired val service: SnippetService,
-    ) {
-
-
-}
+)

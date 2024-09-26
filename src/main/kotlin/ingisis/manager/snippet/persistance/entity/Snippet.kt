@@ -6,9 +6,8 @@ import org.hibernate.annotations.UpdateTimestamp
 import java.time.LocalDateTime
 import java.util.*
 
-
 @Entity
-data class Snippet (
+data class Snippet(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: String = UUID.randomUUID().toString(),
@@ -18,6 +17,4 @@ data class Snippet (
     var updatedAt: LocalDateTime = LocalDateTime.now(),
     var name: String,
     var content: String,
-
-    )
-
+)
