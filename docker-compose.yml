@@ -3,10 +3,10 @@ version: '3'
 services:
 
   db:
-    image: postgres:15
+    image: postgres:15                # busca directamente la imagen de postgres (primero local sino en docker hub)
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: snippet_manager_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5435:5432"
