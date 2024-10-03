@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 
-
 @Service
 class SnippetService
     @Autowired
@@ -24,14 +23,16 @@ class SnippetService
             return repository.save(snippet)
         }
 
-        fun getSnippetPermissionByUserId(snippetId:String, userId: String): List<String> {
+        fun getSnippetPermissionByUserId(
+            snippetId: String,
+            userId: String,
+        ): List<String> {
             val url = "http://localhost:8081/permission/permissions"
             val request = mapOf("userId" to userId, "snippetId" to snippetId)
             val response = restTemplate.postForEntity(url, request, List::class.java)
             return response.body as List<String>
         }
     }
-
 
 /*
     override fun getAllSnippetsPermission(
