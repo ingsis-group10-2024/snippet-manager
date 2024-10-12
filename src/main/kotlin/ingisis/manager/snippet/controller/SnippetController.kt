@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping
+@RequestMapping("/snippet")
 class SnippetController(
     @Autowired val service: SnippetService,
 ) {
@@ -21,6 +21,9 @@ class SnippetController(
         @RequestBody input: CreateSnippetInput,
     ): ResponseEntity<Snippet> = ResponseEntity.ok(service.createSnippet(input))
 
-    @GetMapping("permissions")
+    @GetMapping("/permissions")
     fun getPermissions(): ResponseEntity<List<String>> = ResponseEntity.ok(service.getSnippetPermissionByUserId("1", "1"))
+
+    @PostMapping("/prueba")
+    fun prueba () : String = "Hola"
 }
