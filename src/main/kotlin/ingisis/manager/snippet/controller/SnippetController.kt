@@ -25,5 +25,5 @@ class SnippetController(
     fun getPermissions(): ResponseEntity<List<String>> = ResponseEntity.ok(service.getSnippetPermissionByUserId("1", "1"))
 
     @PostMapping("/prueba")
-    fun prueba () : String = "Hola"
+    fun prueba(): String = "Hola"
 }
