@@ -2,7 +2,7 @@
 
 set -e.
 
-echo "***** Running pre-commit ******"
+echo "✨Running pre-commit ✨ "
 ./gradlew ktlintFormat
 ./gradlew build
-echo "***** Done with pre-commit ******"
+echo "✨✨✨✨Done with pre-commit ✨✨✨✨"
