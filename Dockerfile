@@ -1,7 +1,7 @@
 FROM gradle:8.5-jdk21 AS build
-COPY . /home/gradle/src
+COPY  . /home/gradle/src
 WORKDIR /home/gradle/src
-RUN ./gradlew bootJar
+RUN gradle assemble
 
 FROM amazoncorretto:21-alpine
 WORKDIR /app
