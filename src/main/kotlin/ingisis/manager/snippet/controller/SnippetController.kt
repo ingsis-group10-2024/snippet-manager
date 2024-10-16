@@ -72,4 +72,15 @@ class SnippetController(
 
     @PostMapping("/prueba")
     fun prueba(): String = "Hola"
+
+    @GetMapping("/view/{id}")
+    fun viewSnippet(
+        @PathVariable id: String,
+    ): ResponseEntity<String> {
+        // Todo: Cuando se agregue auth, meter el tema de checkear si tiene los permisos.
+        if (!service.snippetExists(id)) {
+            ResponseEntity.badRequest().body("Snippet not found!")
+        }
+        return ResponseEntity.ok(service.getSnippetContent(id))
+    }
 }
