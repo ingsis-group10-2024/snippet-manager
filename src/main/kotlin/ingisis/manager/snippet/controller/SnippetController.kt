@@ -1,7 +1,5 @@
 package ingisis.manager.snippet.controller
 
-import config.ConfigLoader
-import ingisis.manager.common.LexerConfig
 import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
 import ingisis.manager.snippet.model.dto.CreateSnippetInput
@@ -22,14 +20,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
-import parser.Parser
-import sca.StaticCodeAnalyzer
-import token.Token
 
 @RestController
 @RequestMapping("/snippet")
-class SnippetController(@Autowired val service: SnippetService) {
-
+class SnippetController(
+    @Autowired val service: SnippetService,
+) {
     @PostMapping()
     fun createSnippet(
         @RequestBody input: CreateSnippetInput,
@@ -71,19 +67,19 @@ class SnippetController(@Autowired val service: SnippetService) {
         }
     }
 
-    @GetMapping("/{id}/validate")
-    fun validateSnippet(
-        @PathVariable id: String,
-        @RequestParam version: String,
-    ): ResponseEntity<SnippetValidationResponse> =
-        try {
-            val snippetValidationResponse = service.validateSnippet(id, version)
-            ResponseEntity.ok(snippetValidationResponse)
-        } catch (e: SnippetNotFoundException) {
-            ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
-        } catch (e: IllegalArgumentException) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
-        }
+//    @GetMapping("/{id}/validate")
+//    fun validateSnippet(
+//        @PathVariable id: String,
+//        @RequestParam version: String,
+//    ): ResponseEntity<SnippetValidationResponse> =
+//        try {
+//            val snippetValidationResponse = service.validateSnippet(id, version)
+//            ResponseEntity.ok(snippetValidationResponse)
+//        } catch (e: SnippetNotFoundException) {
+//            ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+//        } catch (e: IllegalArgumentException) {
+//            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+//        }
 
     @GetMapping("/permissions")
     fun getPermissions(): ResponseEntity<List<String>> = ResponseEntity.ok(service.getSnippetPermissionByUserId("1", "1"))

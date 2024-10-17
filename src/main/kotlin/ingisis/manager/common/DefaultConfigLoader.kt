@@ -9,7 +9,6 @@ import java.io.File
 
 @Component
 class DefaultConfigLoader : ConfigLoader {
-
     private val objectMapper = jacksonObjectMapper()
 
     override fun loadConfig(): VerificationConfig {
