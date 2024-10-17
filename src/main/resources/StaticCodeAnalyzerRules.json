@@ -1,0 +1,20 @@
+{
+  "activeRules": [
+    {
+      "name": "camelCase",
+      "enabled": true
+    },
+    {
+      "name": "snake_case",
+      "enabled": false
+    },
+    {
+      "name": "printlnArgumentChecker",
+      "enabled": false
+    },
+    {
+      "name": "readInputArgumentChecker",
+      "enabled": true
+    }
+  ]
+}

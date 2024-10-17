@@ -7,4 +7,8 @@ data class CreateSnippetInput(
     val name: String,
     @NotNull
     val content: String,
+    @NotNull
+    val language: String,
+    @NotNull
+    val version: String
 )
