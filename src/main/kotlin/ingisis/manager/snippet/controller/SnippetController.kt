@@ -1,8 +1,11 @@
 package ingisis.manager.snippet.controller
 
+import config.ConfigLoader
+import ingisis.manager.common.LexerConfig
 import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
 import ingisis.manager.snippet.model.dto.CreateSnippetInput
+import ingisis.manager.snippet.model.dto.SnippetValidationResponse
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.service.SnippetService
@@ -19,11 +22,16 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import parser.Parser
+import sca.StaticCodeAnalyzer
+import token.Token
 
 @RestController
 @RequestMapping("/snippet")
 class SnippetController(
     @Autowired val service: SnippetService,
+    @Autowired val configLoader: ConfigLoader,
+    @Autowired val lexerVersionController: LexerConfig,
 ) {
     @PostMapping()
     fun createSnippet(
@@ -66,6 +74,51 @@ class SnippetController(
             ResponseEntity.status(HttpStatus.NOT_FOUND).body("Snippet not found")
         }
     }
+
+    @GetMapping("/{id}/validate")
+    fun validateSnippet(
+        @PathVariable id: String,
+        @RequestParam version: String
+    ): ResponseEntity<SnippetValidationResponse> {
+        return try {
+            val snippet = service.getSnippetById(id)
+
+            val inputStream = snippet.content.byteInputStream()
+
+            val lexer = lexerVersionController.lexerVersionController().getLexer(version, inputStream)
+
+            val tokens = mutableListOf<Token>()
+            var token: Token? = lexer.getNextToken()
+            while (token != null) {
+                tokens.add(token)
+                token = lexer.getNextToken()
+            }
+            println("Tokens: $tokens")  // DEBUG
+
+
+            val parser = Parser(tokens)
+            val astNodes = parser.generateAST()
+            println("AST Nodes: $astNodes")  // DEBUG
+
+
+            val analyzer = StaticCodeAnalyzer(configLoader)
+            val errors = analyzer.analyze(astNodes)
+
+            val isValid = errors.isEmpty()
+            val response = SnippetValidationResponse(
+                isValid,
+                snippet.content,
+                errors
+            )
+            ResponseEntity.ok(response)
+
+        } catch (e: SnippetNotFoundException) {
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
+        }
+    }
+
 
     @GetMapping("/permissions")
     fun getPermissions(): ResponseEntity<List<String>> = ResponseEntity.ok(service.getSnippetPermissionByUserId("1", "1"))

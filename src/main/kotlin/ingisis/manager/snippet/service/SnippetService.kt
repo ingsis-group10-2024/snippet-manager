@@ -75,6 +75,12 @@ class SnippetService
             }
         }
 
+        fun getSnippetById(id: String): Snippet {
+            return repository.findById(id).orElseThrow {
+                SnippetNotFoundException("Snippet with ID $id not found")
+            }
+        }
+
     /*
     override fun getAllSnippetsPermission(
         userId: String,
