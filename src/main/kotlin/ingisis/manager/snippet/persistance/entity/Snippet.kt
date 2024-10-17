@@ -21,4 +21,6 @@ data class Snippet(
     var updatedAt: LocalDateTime = LocalDateTime.now(),
     var name: String,
     var content: String,
+    var language: String,
+    var version: String,
 )

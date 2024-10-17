@@ -6,9 +6,6 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class LexerConfig {
-
     @Bean
-    fun lexerVersionController(): LexerVersionController {
-        return LexerVersionController()
-    }
+    fun lexerVersionController(): LexerVersionController = LexerVersionController()
 }

@@ -28,11 +28,8 @@ import token.Token
 
 @RestController
 @RequestMapping("/snippet")
-class SnippetController(
-    @Autowired val service: SnippetService,
-    @Autowired val configLoader: ConfigLoader,
-    @Autowired val lexerVersionController: LexerConfig,
-) {
+class SnippetController(@Autowired val service: SnippetService) {
+
     @PostMapping()
     fun createSnippet(
         @RequestBody input: CreateSnippetInput,
@@ -40,14 +37,13 @@ class SnippetController(
 
     @PostMapping("/upload")
     fun uploadSnippet(
-        @RequestParam("name") name: String,
+        @ModelAttribute input: CreateSnippetInput,
         @RequestParam("file") file: MultipartFile,
     ): ResponseEntity<String> {
         if (file.isEmpty) {
             return ResponseEntity.badRequest().body(null)
         }
         return try {
-            val input = CreateSnippetInput(name = name, content = "")
             val snippet = service.processFileAndCreateSnippet(file, input)
             ResponseEntity.ok("Snippet created: ${snippet.id}")
         } catch (e: InvalidSnippetException) {
@@ -78,47 +74,16 @@ class SnippetController(
     @GetMapping("/{id}/validate")
     fun validateSnippet(
         @PathVariable id: String,
-        @RequestParam version: String
-    ): ResponseEntity<SnippetValidationResponse> {
-        return try {
-            val snippet = service.getSnippetById(id)
-
-            val inputStream = snippet.content.byteInputStream()
-
-            val lexer = lexerVersionController.lexerVersionController().getLexer(version, inputStream)
-
-            val tokens = mutableListOf<Token>()
-            var token: Token? = lexer.getNextToken()
-            while (token != null) {
-                tokens.add(token)
-                token = lexer.getNextToken()
-            }
-            println("Tokens: $tokens")  // DEBUG
-
-
-            val parser = Parser(tokens)
-            val astNodes = parser.generateAST()
-            println("AST Nodes: $astNodes")  // DEBUG
-
-
-            val analyzer = StaticCodeAnalyzer(configLoader)
-            val errors = analyzer.analyze(astNodes)
-
-            val isValid = errors.isEmpty()
-            val response = SnippetValidationResponse(
-                isValid,
-                snippet.content,
-                errors
-            )
-            ResponseEntity.ok(response)
-
+        @RequestParam version: String,
+    ): ResponseEntity<SnippetValidationResponse> =
+        try {
+            val snippetValidationResponse = service.validateSnippet(id, version)
+            ResponseEntity.ok(snippetValidationResponse)
         } catch (e: SnippetNotFoundException) {
             ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
         } catch (e: IllegalArgumentException) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
         }
-    }
-
 
     @GetMapping("/permissions")
     fun getPermissions(): ResponseEntity<List<String>> = ResponseEntity.ok(service.getSnippetPermissionByUserId("1", "1"))
