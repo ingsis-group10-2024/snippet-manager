@@ -28,8 +28,8 @@ repositories {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/ingsis-group10-2024/printscript")
         credentials {
-            username = project.findProperty("github.user") ?: System.getenv("USERNAME")
-            password = project.findProperty("github.token") ?: System.getenv("TOKEN")
+            username = System.getProperty('repo.username') ?: ""
+            password = System.getProperty('repo.password') ?: ""
         }
     }
 }
