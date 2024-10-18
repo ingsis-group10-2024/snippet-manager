@@ -1,11 +1,8 @@
 package ingisis.manager.snippet.service
 
-import config.ConfigLoader
-import ingisis.manager.common.LexerConfig
 import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
 import ingisis.manager.snippet.model.dto.CreateSnippetInput
-import ingisis.manager.snippet.model.dto.SnippetValidationResponse
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.persistance.repository.SnippetRepository
@@ -13,9 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
-import parser.Parser
-import sca.StaticCodeAnalyzer
-import token.Token
 
 @Service
 class SnippetService
@@ -29,6 +23,7 @@ class SnippetService
             repository.findById(id).orElseThrow {
                 SnippetNotFoundException("Snippet with ID $id not found")
             }
+
         fun createSnippet(input: CreateSnippetInput): Snippet {
             val snippet =
                 Snippet(
@@ -88,8 +83,6 @@ class SnippetService
 
             return repository.save(updatedSnippet)
         }
-
-
 
     /*
     override fun getAllSnippetsPermission(

@@ -12,10 +12,11 @@ import token.Token
 @Service
 class ParserService(
     @Autowired private val configLoader: ConfigLoader,
-    @Autowired private val lexerVersionController: LexerConfig
-    ) {
-
-    fun validateSnippet(content: String, version: String,
+    @Autowired private val lexerVersionController: LexerConfig,
+) {
+    fun validateSnippet(
+        content: String,
+        version: String,
     ): SnippetValidationResponse {
         val inputStream = content.byteInputStream()
         val lexer = lexerVersionController.lexerVersionController().getLexer(version, inputStream)

@@ -3,7 +3,6 @@ package ingisis.manager.snippet.controller
 import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
 import ingisis.manager.snippet.model.dto.CreateSnippetInput
-import ingisis.manager.snippet.model.dto.SnippetValidationResponse
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.service.SnippetService
