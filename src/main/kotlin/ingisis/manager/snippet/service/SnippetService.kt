@@ -1,11 +1,15 @@
 package ingisis.manager.snippet.service
 
+import ingisis.manager.snippet.exception.InvalidSnippetException
+import ingisis.manager.snippet.exception.SnippetNotFoundException
 import ingisis.manager.snippet.model.dto.CreateSnippetInput
+import ingisis.manager.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import org.springframework.web.multipart.MultipartFile
 
 @Service
 class SnippetService
@@ -13,13 +17,27 @@ class SnippetService
     constructor(
         private val repository: SnippetRepository,
         private val restTemplate: RestTemplate,
+        private val parserService: ParserService,
     ) {
+        private fun getSnippetById(id: String): Snippet =
+            repository.findById(id).orElseThrow {
+                SnippetNotFoundException("Snippet with ID $id not found")
+            }
+
         fun createSnippet(input: CreateSnippetInput): Snippet {
             val snippet =
                 Snippet(
                     name = input.name,
                     content = input.content,
+                    language = input.language,
+                    version = input.version,
                 )
+            val validationResponse = parserService.validateSnippet(snippet.content, snippet.version)
+
+            // throw exceptions if the snippet is invalid
+            if (!validationResponse.isValid) {
+                throw InvalidSnippetException("Snippet is invalid: ${validationResponse.errors}")
+            }
             return repository.save(snippet)
         }
 
@@ -32,9 +50,41 @@ class SnippetService
             val response = restTemplate.postForEntity(url, request, List::class.java)
             return response.body as List<String>
         }
-    }
 
-/*
+        fun processFileAndCreateSnippet(
+            file: MultipartFile,
+            input: CreateSnippetInput,
+        ): Snippet {
+            val content = file.inputStream.bufferedReader().use { it.readText() }
+
+            val snippetData = input.copy(content = content)
+
+            return createSnippet(snippetData)
+        }
+
+        fun processFileAndUpdateSnippet(
+            id: String,
+            input: UpdateSnippetInput,
+            file: MultipartFile?,
+        ): Snippet {
+            val snippet = getSnippetById(id)
+
+            val updatedName = input.name ?: snippet.name
+            val updatedContent = file?.inputStream?.bufferedReader()?.use { it.readText() } ?: snippet.content
+
+            val updatedSnippet = snippet.copy(name = updatedName, content = updatedContent)
+
+            val validationResponse = parserService.validateSnippet(updatedSnippet.content, updatedSnippet.version)
+
+            // throw exceptions if the snippet is invalid
+            if (!validationResponse.isValid) {
+                throw InvalidSnippetException("Snippet is invalid: ${validationResponse.errors}")
+            }
+
+            return repository.save(updatedSnippet)
+        }
+
+    /*
     override fun getAllSnippetsPermission(
         userId: String,
         token: String,
@@ -46,4 +96,5 @@ class SnippetService
         val entity: HttpEntity<Void> = HttpEntity(headers)
         return rest.exchange(getSnippetsUrl, HttpMethod.GET, entity, PermissionListOutput::class.java)
     }
- */
+     */
+    }
