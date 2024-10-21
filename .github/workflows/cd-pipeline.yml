@@ -19,7 +19,7 @@ jobs:
 
       - name: Set environment variables for authentication
         run: |
-          echo "repo.username=${{ github.actor }}" >> $GITHUB_ENV
+          echo "repo.username=${{ github.repository_owner }}" >> $GITHUB_ENV
           echo "repo.password=${{ secrets.GHCR_TOKEN }}" >> $GITHUB_ENV
 
       - name: Login to GitHub Container Registry
