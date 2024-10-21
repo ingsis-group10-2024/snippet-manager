@@ -32,6 +32,5 @@ jobs:
           echo "systemProp.repo.username=${USERNAME}" >> ~/.gradle/gradle.properties
           echo "systemProp.repo.password=${PASSWORD}" >> ~/.gradle/gradle.properties
 
-
       - name: Build project
         run: ./gradlew build
