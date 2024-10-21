@@ -17,9 +17,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      - name: Authenticate to GitHub Package Registry
-        run: echo "//maven.pkg.github.com/ingsis-group10-2024" > ~/.gradle/gradle.properties && \
-             echo "systemProp.github.token=${{ secrets.GITHUB_TOKEN }}" >> ~/.gradle/gradle.properties
+      - name: Set environment variables for authentication
+        run: |
+          echo "repo.username=${{ github.actor }}" >> $GITHUB_ENV
+          echo "repo.password=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
