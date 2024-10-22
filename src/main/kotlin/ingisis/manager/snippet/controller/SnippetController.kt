@@ -3,7 +3,9 @@ package ingisis.manager.snippet.controller
 import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
 import ingisis.manager.snippet.model.dto.CreateSnippetInput
+import ingisis.manager.snippet.model.dto.SnippetRequest
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
+import ingisis.manager.snippet.model.dto.restResponse.ValidationResponse
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.service.SnippetService
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,12 +28,18 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping("/snippet")
 class SnippetController(
     @Autowired private val service: SnippetService,
+    private val snippetService: SnippetService,
 ) {
+
+    @PostMapping("/process")
+    fun validateSnippet(@RequestBody request: SnippetRequest): ResponseEntity<ValidationResponse> {
+        val response = snippetService.validateSnippet(request.content, request.version)
+        return ResponseEntity.ok(response)
+    }
+
     @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping()
-    fun createSnippet(
-        @RequestBody input: CreateSnippetInput,
-    ): ResponseEntity<Snippet> = ResponseEntity.ok(service.createSnippet(input))
+    fun createSnippet(@RequestBody input: CreateSnippetInput): ResponseEntity<Snippet> = ResponseEntity.ok(service.createSnippet(input))
 
     @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping("/upload")
@@ -103,4 +111,12 @@ class SnippetController(
         // Aquí puedes extraer información del token
         return ResponseEntity.ok("Token válido. Token recibido: $token")
     }
+
+    // DE TESTEO SOLO PARA PROBAR EL ID DEL USUARIO
+    @GetMapping("/id")
+    fun getUserId(): ResponseEntity<String> {
+        val userId = service.getCurrentUserId()
+        return ResponseEntity.ok(userId)
+    }
+
 }

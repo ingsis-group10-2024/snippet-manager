@@ -3,13 +3,17 @@ package ingisis.manager.snippet.service
 import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
 import ingisis.manager.snippet.model.dto.CreateSnippetInput
+import ingisis.manager.snippet.model.dto.SnippetRequest
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
+import ingisis.manager.snippet.model.dto.restResponse.ValidationResponse
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 
 @Service
 class SnippetService
@@ -17,7 +21,6 @@ class SnippetService
     constructor(
         private val repository: SnippetRepository,
         private val restTemplate: RestTemplate,
-        private val parserService: ParserService,
     ) {
         private fun getSnippetById(id: String): Snippet =
             repository.findById(id).orElseThrow {
@@ -25,20 +28,33 @@ class SnippetService
             }
 
         fun createSnippet(input: CreateSnippetInput): Snippet {
+            val authorId = getCurrentUserId()  // Obtener el ID del usuario actual
             val snippet =
                 Snippet(
                     name = input.name,
                     content = input.content,
                     language = input.language,
                     version = input.version,
+                    authorId = authorId
                 )
-            val validationResponse = parserService.validateSnippet(snippet.content, snippet.version)
+
+            val lintResult = validateSnippet(snippet.content, snippet.version)
 
             // throw exceptions if the snippet is invalid
-            if (!validationResponse.isValid) {
-                throw InvalidSnippetException("Snippet is invalid: ${validationResponse.errors}")
+            if (!lintResult.isValid) {
+                throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
             }
             return repository.save(snippet)
+        }
+
+        fun validateSnippet(content: String, version: String): ValidationResponse {
+            val request = SnippetRequest(content, version)
+            val response = restTemplate.postForEntity(
+                "http://localhost:8082/language/lint",
+                request,
+                ValidationResponse::class.java
+            )
+            return response.body ?: throw RuntimeException("Failed to validate snippet")
         }
 
         fun getSnippetPermissionByUserId(
@@ -74,15 +90,22 @@ class SnippetService
 
             val updatedSnippet = snippet.copy(name = updatedName, content = updatedContent)
 
-            val validationResponse = parserService.validateSnippet(updatedSnippet.content, updatedSnippet.version)
+            val lintResult = validateSnippet(updatedSnippet.content, updatedSnippet.version)
 
             // throw exceptions if the snippet is invalid
-            if (!validationResponse.isValid) {
-                throw InvalidSnippetException("Snippet is invalid: ${validationResponse.errors}")
+            if (!lintResult.isValid) {
+                throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
             }
 
             return repository.save(updatedSnippet)
         }
+
+         fun getCurrentUserId(): String {
+            val authentication = SecurityContextHolder.getContext().authentication
+            val jwt = authentication.principal as Jwt
+            return jwt.claims["sub"] as String // El 'sub' es el ID del usuario en Auth0
+         }
+
 
     /*
     override fun getAllSnippetsPermission(
