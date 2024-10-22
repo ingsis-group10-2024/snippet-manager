@@ -12,7 +12,10 @@ class DefaultConfigLoader : ConfigLoader {
     private val objectMapper = jacksonObjectMapper()
 
     override fun loadConfig(): VerificationConfig {
-        val configFilePath = "path/to/config.json" // Cambia esto a la ubicación correcta
-        return objectMapper.readValue(File(configFilePath))
+        val configFilePath = "StaticCodeAnalyzerRules.json"
+        return objectMapper.readValue(
+            this::class.java.classLoader.getResourceAsStream(configFilePath),
+            VerificationConfig::class.java
+        )
     }
 }

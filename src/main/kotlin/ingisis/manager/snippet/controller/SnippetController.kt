@@ -9,12 +9,14 @@ import ingisis.manager.snippet.service.SnippetService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -23,13 +25,15 @@ import org.springframework.web.multipart.MultipartFile
 @RestController
 @RequestMapping("/snippet")
 class SnippetController(
-    @Autowired val service: SnippetService,
+    @Autowired private val service: SnippetService,
 ) {
+    @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping()
     fun createSnippet(
         @RequestBody input: CreateSnippetInput,
     ): ResponseEntity<Snippet> = ResponseEntity.ok(service.createSnippet(input))
 
+    @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping("/upload")
     fun uploadSnippet(
         @ModelAttribute input: CreateSnippetInput,
@@ -46,6 +50,7 @@ class SnippetController(
         }
     }
 
+    @PreAuthorize("hasAuthority('update:snippet')")
     @PutMapping("/update/{id}")
     fun updateSnippet(
         @PathVariable id: String,
@@ -85,4 +90,17 @@ class SnippetController(
 
     @PostMapping("/prueba")
     fun prueba(): String = "Hola"
+
+    // Endpoint to receive and check a token
+    @PostMapping("/verify-token")
+    fun verifyToken(
+        @RequestHeader("Authorization") authHeader: String,
+    ): ResponseEntity<String> {
+        // Extract the JWT token from Authorization header
+        val token = authHeader.replace("Bearer ", "")
+
+        // Lógica para validar o decodificar el token (Spring Security ya se encarga de esta parte)
+        // Aquí puedes extraer información del token
+        return ResponseEntity.ok("Token válido. Token recibido: $token")
+    }
 }

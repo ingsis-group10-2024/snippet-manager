@@ -1,6 +1,6 @@
 package ingisis.manager.snippet.service
 
-import config.ConfigLoader
+import ingisis.manager.common.DefaultConfigLoader
 import ingisis.manager.common.LexerConfig
 import ingisis.manager.snippet.model.dto.SnippetValidationResponse
 import org.springframework.beans.factory.annotation.Autowired
@@ -11,7 +11,7 @@ import token.Token
 
 @Service
 class ParserService(
-    @Autowired private val configLoader: ConfigLoader,
+    @Autowired private val configLoader: DefaultConfigLoader,
     @Autowired private val lexerVersionController: LexerConfig,
 ) {
     fun validateSnippet(
