@@ -1,3 +1,6 @@
 package ingisis.manager.snippet.model.dto
 
-data class SnippetRequest(val content: String, val version: String)
+data class SnippetRequest(
+    val content: String,
+    val version: String,
+)

@@ -30,16 +30,19 @@ class SnippetController(
     @Autowired private val service: SnippetService,
     private val snippetService: SnippetService,
 ) {
-
     @PostMapping("/process")
-    fun validateSnippet(@RequestBody request: SnippetRequest): ResponseEntity<ValidationResponse> {
+    fun validateSnippet(
+        @RequestBody request: SnippetRequest,
+    ): ResponseEntity<ValidationResponse> {
         val response = snippetService.validateSnippet(request.content, request.version)
         return ResponseEntity.ok(response)
     }
 
     @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping()
-    fun createSnippet(@RequestBody input: CreateSnippetInput): ResponseEntity<Snippet> = ResponseEntity.ok(service.createSnippet(input))
+    fun createSnippet(
+        @RequestBody input: CreateSnippetInput,
+    ): ResponseEntity<Snippet> = ResponseEntity.ok(service.createSnippet(input))
 
     @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping("/upload")
@@ -118,5 +121,4 @@ class SnippetController(
         val userId = service.getCurrentUserId()
         return ResponseEntity.ok(userId)
     }
-
 }

@@ -9,11 +9,11 @@ import ingisis.manager.snippet.model.dto.restResponse.ValidationResponse
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.jwt.Jwt
 
 @Service
 class SnippetService
@@ -28,14 +28,14 @@ class SnippetService
             }
 
         fun createSnippet(input: CreateSnippetInput): Snippet {
-            val authorId = getCurrentUserId()  // Obtener el ID del usuario actual
+            val authorId = getCurrentUserId() // Obtener el ID del usuario actual
             val snippet =
                 Snippet(
                     name = input.name,
                     content = input.content,
                     language = input.language,
                     version = input.version,
-                    authorId = authorId
+                    authorId = authorId,
                 )
 
             val lintResult = validateSnippet(snippet.content, snippet.version)
@@ -47,13 +47,17 @@ class SnippetService
             return repository.save(snippet)
         }
 
-        fun validateSnippet(content: String, version: String): ValidationResponse {
+        fun validateSnippet(
+            content: String,
+            version: String,
+        ): ValidationResponse {
             val request = SnippetRequest(content, version)
-            val response = restTemplate.postForEntity(
-                "http://localhost:8082/language/lint",
-                request,
-                ValidationResponse::class.java
-            )
+            val response =
+                restTemplate.postForEntity(
+                    "http://localhost:8082/language/lint",
+                    request,
+                    ValidationResponse::class.java,
+                )
             return response.body ?: throw RuntimeException("Failed to validate snippet")
         }
 
@@ -100,12 +104,11 @@ class SnippetService
             return repository.save(updatedSnippet)
         }
 
-         fun getCurrentUserId(): String {
+        fun getCurrentUserId(): String {
             val authentication = SecurityContextHolder.getContext().authentication
             val jwt = authentication.principal as Jwt
             return jwt.claims["sub"] as String // El 'sub' es el ID del usuario en Auth0
-         }
-
+        }
 
     /*
     override fun getAllSnippetsPermission(
