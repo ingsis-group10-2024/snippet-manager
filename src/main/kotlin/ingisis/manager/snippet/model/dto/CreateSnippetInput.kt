@@ -10,5 +10,5 @@ data class CreateSnippetInput(
     @NotNull
     val language: String,
     @NotNull
-    val version: String
+    val version: String,
 )

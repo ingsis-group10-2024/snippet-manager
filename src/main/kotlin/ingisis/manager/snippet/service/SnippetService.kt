@@ -25,11 +25,11 @@ class SnippetService
         private val restTemplate: RestTemplate,
         private val configLoader: ConfigLoader,
         private val lexerVersionController: LexerConfig,
-        ) {
+    ) {
         private fun getSnippetById(id: String): Snippet =
-        repository.findById(id).orElseThrow {
-            SnippetNotFoundException("Snippet with ID $id not found")
-        }
+            repository.findById(id).orElseThrow {
+                SnippetNotFoundException("Snippet with ID $id not found")
+            }
 
         fun createSnippet(input: CreateSnippetInput): Snippet {
             val snippet =
@@ -43,22 +43,29 @@ class SnippetService
 
             // throw exceptions if the snippet is invalid
             if (!validationResponse.isValid) {
-                val errorMessage = validationResponse.errors.joinToString(separator = "; ") { error ->
-                    error.message
-                }
+                val errorMessage =
+                    validationResponse.errors.joinToString(separator = "; ") { error ->
+                        error.message
+                    }
                 throw InvalidSnippetException("Invalid snippet: $errorMessage")
             }
             return repository.save(snippet)
         }
 
-        fun getSnippetPermissionByUserId(snippetId: String, userId: String): List<String> {
+        fun getSnippetPermissionByUserId(
+            snippetId: String,
+            userId: String,
+        ): List<String> {
             val url = "http://localhost:8081/permission/permissions"
             val request = mapOf("userId" to userId, "snippetId" to snippetId)
             val response = restTemplate.postForEntity(url, request, List::class.java)
             return response.body as List<String>
         }
 
-        fun processFileAndCreateSnippet(file: MultipartFile, input: CreateSnippetInput): Snippet {
+        fun processFileAndCreateSnippet(
+            file: MultipartFile,
+            input: CreateSnippetInput,
+        ): Snippet {
             val content = file.inputStream.bufferedReader().use { it.readText() }
 
             val snippetData = input.copy(content = content)
@@ -66,7 +73,11 @@ class SnippetService
             return createSnippet(snippetData)
         }
 
-        fun processFileAndUpdateSnippet(id: String, input: UpdateSnippetInput, file: MultipartFile?): Snippet {
+        fun processFileAndUpdateSnippet(
+            id: String,
+            input: UpdateSnippetInput,
+            file: MultipartFile?,
+        ): Snippet {
             val snippet = getSnippetById(id)
 
             val updatedName = input.name ?: snippet.name
@@ -78,16 +89,20 @@ class SnippetService
 
             // throw exceptions if the snippet is invalid
             if (!validationResponse.isValid) {
-                val errorMessage = validationResponse.errors.joinToString(separator = "; ") { error ->
-                    error.message
-                }
+                val errorMessage =
+                    validationResponse.errors.joinToString(separator = "; ") { error ->
+                        error.message
+                    }
                 throw InvalidSnippetException("Invalid snippet: $errorMessage")
             }
 
             return repository.save(updatedSnippet)
         }
 
-        fun validateSnippet(id: String, version: String): SnippetValidationResponse{
+        fun validateSnippet(
+            id: String,
+            version: String,
+        ): SnippetValidationResponse {
             val snippet = getSnippetById(id)
 
             val inputStream = snippet.content.byteInputStream()
