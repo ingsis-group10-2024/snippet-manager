@@ -32,5 +32,5 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/ingsis-group10-2024/snippet-manager-dev:latest
           build-args: |
-            REPO_USERNAME=${{ github.actor }}
+            REPO_USERNAME=${{ github.repository_owner }}
             REPO_PASSWORD=${{ secrets.GHCR_TOKEN }}
