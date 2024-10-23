@@ -28,7 +28,7 @@ class SnippetService
             }
 
         fun createSnippet(input: CreateSnippetInput): Snippet {
-            val authorId = getCurrentUserId() // Obtener el ID del usuario actual
+            val authorId = getCurrentUserId() // Get the current user ID from the JWT token
             val snippet =
                 Snippet(
                     name = input.name,
@@ -40,7 +40,7 @@ class SnippetService
 
             val lintResult = validateSnippet(snippet.content, snippet.version)
 
-            // throw exceptions if the snippet is invalid
+            // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
                 throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
             }
@@ -54,7 +54,7 @@ class SnippetService
             val request = SnippetRequest(content, version)
             val response =
                 restTemplate.postForEntity(
-                    "http://localhost:8082/language/lint",
+                    "http://snippet-language:8080/language/lint",
                     request,
                     ValidationResponse::class.java,
                 )
@@ -96,7 +96,7 @@ class SnippetService
 
             val lintResult = validateSnippet(updatedSnippet.content, updatedSnippet.version)
 
-            // throw exceptions if the snippet is invalid
+            // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
                 throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
             }
@@ -107,7 +107,7 @@ class SnippetService
         fun getCurrentUserId(): String {
             val authentication = SecurityContextHolder.getContext().authentication
             val jwt = authentication.principal as Jwt
-            return jwt.claims["sub"] as String // El 'sub' es el ID del usuario en Auth0
+            return jwt.claims["sub"] as String // 'sub' is the user ID in the JWT token
         }
 
     /*
