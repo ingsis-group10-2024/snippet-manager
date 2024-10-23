@@ -5,14 +5,16 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import config.ConfigLoader
 import config.VerificationConfig
 import org.springframework.stereotype.Component
-import java.io.File
 
 @Component
 class DefaultConfigLoader : ConfigLoader {
     private val objectMapper = jacksonObjectMapper()
 
     override fun loadConfig(): VerificationConfig {
-        val configFilePath = "path/to/config.json" // Cambia esto a la ubicación correcta
-        return objectMapper.readValue(File(configFilePath))
+        val configFilePath = "StaticCodeAnalyzerRules.json"
+        return objectMapper.readValue(
+            this::class.java.classLoader.getResourceAsStream(configFilePath),
+            VerificationConfig::class.java,
+        )
     }
 }
