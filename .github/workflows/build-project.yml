@@ -24,5 +24,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2 #action para configurar gradle en el entorno de ejecución
 
+      - name: Set up authentication for private repositories
+        env:
+          USERNAME: ${{ secrets.USERNAME }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+        run: |
+          echo "systemProp.repo.username=${USERNAME}" >> ~/.gradle/gradle.properties
+          echo "systemProp.repo.password=${PASSWORD}" >> ~/.gradle/gradle.properties
+
       - name: Build project
         run: ./gradlew build

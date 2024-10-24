@@ -1,4 +1,5 @@
 FROM gradle:8.5-jdk21 AS build
+
 COPY  . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle assemble
