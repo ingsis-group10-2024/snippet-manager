@@ -121,4 +121,15 @@ class SnippetController(
         val userId = service.getCurrentUserId()
         return ResponseEntity.ok(userId)
     }
+
+    @PreAuthorize("hasAuthority('update:snippet')")
+    @GetMapping("/view/{id}")
+    fun viewSnippet(
+        @PathVariable id: String,
+    ): ResponseEntity<String> {
+        if (!service.snippetExists(id)) {
+            ResponseEntity.badRequest().body("Snippet not found!")
+        }
+        return ResponseEntity.ok(service.getSnippetContent(id))
+    }
 }
