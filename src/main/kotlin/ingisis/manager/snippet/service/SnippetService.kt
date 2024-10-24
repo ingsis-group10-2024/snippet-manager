@@ -8,10 +8,11 @@ import ingisis.manager.snippet.model.dto.restResponse.ValidationResponse
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
+import org.springframework.web.client.RestTemplate
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
-import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 
 @Service
@@ -51,7 +52,7 @@ class SnippetService
             version: String,
         ): ValidationResponse {
             val request = SnippetRequest(content, version)
-            val response =
+            val response: ResponseEntity<ValidationResponse> =
                 restTemplate.postForEntity(
                     "http://snippet-language:8080/language/lint",
                     request,
