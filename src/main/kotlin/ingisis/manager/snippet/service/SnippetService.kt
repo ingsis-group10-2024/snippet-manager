@@ -109,6 +109,10 @@ class SnippetService
             return jwt.claims["sub"] as String // 'sub' is the user ID in the JWT token
         }
 
+        fun snippetExists(id: String): Boolean = !repository.findById(id).isEmpty
+
+        fun getSnippetContent(id: String): String = repository.findById(id).get().content
+
     /*
     override fun getAllSnippetsPermission(
         userId: String,
