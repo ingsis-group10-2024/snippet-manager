@@ -35,14 +35,6 @@ repositories {
 }
 
 dependencies {
-    implementation 'printscript:common:2.1.10-SNAPSHOT'
-    implementation 'printscript:cli:2.1.10-SNAPSHOT'
-    implementation 'printscript:parser:2.1.10-SNAPSHOT'
-    implementation 'printscript:lexer:2.1.10-SNAPSHOT'
-    implementation 'printscript:interpreter:2.1.10-SNAPSHOT'
-    implementation 'printscript:formatter:2.1.10-SNAPSHOT'
-    implementation 'printscript:sca:2.1.10-SNAPSHOT'
-
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
@@ -57,8 +49,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.okta.spring:okta-spring-boot-starter:3.0.5'
     implementation("org.springframework.boot:spring-boot-starter-security")
-
-
 }
 
 kotlin {

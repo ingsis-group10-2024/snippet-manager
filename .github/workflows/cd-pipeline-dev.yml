@@ -31,6 +31,3 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ghcr.io/ingsis-group10-2024/snippet-manager-dev:latest
-          build-args: |
-            ACTOR=${{ github.repository_owner }}
-            TOKEN=${{ secrets.GITHUB_TOKEN }}

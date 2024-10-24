@@ -1,6 +1,5 @@
 package ingisis.manager.snippet.service
 
-import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
 import ingisis.manager.snippet.model.dto.CreateSnippetInput
 import ingisis.manager.snippet.model.dto.SnippetRequest
@@ -42,7 +41,7 @@ class SnippetService
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
-                throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
+                //   throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
             }
             return repository.save(snippet)
         }
@@ -98,7 +97,7 @@ class SnippetService
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
-                throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
+                //   throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
             }
 
             return repository.save(updatedSnippet)
