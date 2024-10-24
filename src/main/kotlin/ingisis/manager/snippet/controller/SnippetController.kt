@@ -122,7 +122,7 @@ class SnippetController(
         return ResponseEntity.ok(userId)
     }
 
-    @PreAuthorize("hasAuthority('update:snippet')")
+    @PreAuthorize("hasAuthority('read:snippet')")
     @GetMapping("/view/{id}")
     fun viewSnippet(
         @PathVariable id: String,
