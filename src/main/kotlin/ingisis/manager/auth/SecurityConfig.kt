@@ -21,10 +21,10 @@ class SecurityConfig {
         return http
             .authorizeHttpRequests { authorize ->
                 authorize
-                    .requestMatchers("/snippet/prueba")
-                    .hasRole("User")
-                    .requestMatchers("/snippet/**")
-                    .hasAuthority("SCOPE_create:snippet") // Requiere el scope create:snippet
+//                    .requestMatchers("/snippet/prueba")
+//                    .hasRole("User")
+//                    .requestMatchers("/snippet/**")
+//                    .hasAuthority("SCOPE_create:snippet") // Requiere el scope create:snippet
                     .anyRequest()
                     .authenticated() // Cualquier otra petición debe estar autenticada
             }.cors(withDefaults())

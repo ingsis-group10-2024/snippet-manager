@@ -28,14 +28,18 @@ repositories {
         name = "GitHubPackages"
         url = uri("https://maven.pkg.github.com/ingsis-group10-2024/printscript")
         credentials {
-            username = System.getProperty('repo.username') ?: findProperty('repo.username') ?: ""
-            password = System.getProperty('repo.password') ?: findProperty('repo.password') ?: ""
+            username = System.getenv("GITHUB_ACTOR")
+            password = System.getenv("GITHUB_TOKEN")
         }
     }
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    implementation 'printscript:sca:2.1.10-SNAPSHOT'
+    implementation 'printscript:common:2.1.10-SNAPSHOT'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
 	implementation 'org.jetbrains.kotlin:kotlin-reflect'

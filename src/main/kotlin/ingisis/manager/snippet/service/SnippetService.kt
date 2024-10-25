@@ -1,13 +1,17 @@
 package ingisis.manager.snippet.service
 
+import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
-import ingisis.manager.snippet.model.dto.CreateSnippetInput
 import ingisis.manager.snippet.model.dto.SnippetRequest
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
+import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetInput
 import ingisis.manager.snippet.model.dto.restResponse.ValidationResponse
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
@@ -41,7 +45,8 @@ class SnippetService
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
-                //   throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
+                val errors = lintResult.errors ?: emptyList() // Get the errors from the response
+                throw InvalidSnippetException(errors)
             }
             return repository.save(snippet)
         }
@@ -50,14 +55,31 @@ class SnippetService
             content: String,
             version: String,
         ): ValidationResponse {
-            val request = SnippetRequest(content, version)
-            val response =
-                restTemplate.postForEntity(
-                    "http://snippet-language:8080/language/lint",
-                    request,
-                    ValidationResponse::class.java,
-                )
-            return response.body ?: throw RuntimeException("Failed to validate snippet")
+            val request = SnippetRequest(content = content, languageVersion = version)
+
+            // Create headers with the JWT token
+            val headers =
+                HttpHeaders().apply {
+                    contentType = MediaType.APPLICATION_JSON
+                    setBearerAuth(getJwtToken())
+                }
+
+            val entity = HttpEntity(request, headers)
+            println("Headers: $headers") // DEBUG
+
+            return restTemplate.postForObject(
+                "http://language:8080/language/lint",
+                entity,
+                ValidationResponse::class.java,
+            )!!
+        }
+
+        // Extract the JWT token from the authentication object
+        private fun getJwtToken(): String {
+            val authentication = SecurityContextHolder.getContext().authentication
+            val jwt = authentication.principal as Jwt
+            println("JWT Token: ${jwt.tokenValue}") // DEBUG
+            return jwt.tokenValue
         }
 
         fun getSnippetPermissionByUserId(
