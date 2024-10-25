@@ -2,7 +2,7 @@ package ingisis.manager.snippet.controller
 
 import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
-import ingisis.manager.snippet.model.dto.CreateSnippetInput
+import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetInput
 import ingisis.manager.snippet.model.dto.SnippetRequest
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.snippet.model.dto.restResponse.ValidationResponse
@@ -27,14 +27,12 @@ import org.springframework.web.multipart.MultipartFile
 @RestController
 @RequestMapping("/snippet")
 class SnippetController(
-    @Autowired private val service: SnippetService,
-    private val snippetService: SnippetService,
-) {
+    @Autowired private val snippetService: SnippetService, ) {
     @PostMapping("/process")
     fun validateSnippet(
         @RequestBody request: SnippetRequest,
     ): ResponseEntity<ValidationResponse> {
-        val response = snippetService.validateSnippet(request.content, request.version)
+        val response = snippetService.validateSnippet(request.content, request.languageVersion)
         return ResponseEntity.ok(response)
     }
 
@@ -42,7 +40,7 @@ class SnippetController(
     @PostMapping()
     fun createSnippet(
         @RequestBody input: CreateSnippetInput,
-    ): ResponseEntity<Snippet> = ResponseEntity.ok(service.createSnippet(input))
+    ): ResponseEntity<Snippet> = ResponseEntity.ok(snippetService.createSnippet(input))
 
     @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping("/upload")
@@ -54,7 +52,7 @@ class SnippetController(
             return ResponseEntity.badRequest().body(null)
         }
         return try {
-            val snippet = service.processFileAndCreateSnippet(file, input)
+            val snippet = snippetService.processFileAndCreateSnippet(file, input)
             ResponseEntity.ok("Snippet created: ${snippet.id}")
         } catch (e: InvalidSnippetException) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.message)
@@ -73,7 +71,7 @@ class SnippetController(
         }
 
         return try {
-            val updatedSnippet = service.processFileAndUpdateSnippet(id, input, file)
+            val updatedSnippet = snippetService.processFileAndUpdateSnippet(id, input, file)
             ResponseEntity.ok("Snippet updated: ${updatedSnippet.id}")
         } catch (e: InvalidSnippetException) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.message)
@@ -97,7 +95,7 @@ class SnippetController(
 //        }
 
     @GetMapping("/permissions")
-    fun getPermissions(): ResponseEntity<List<String>> = ResponseEntity.ok(service.getSnippetPermissionByUserId("1", "1"))
+    fun getPermissions(): ResponseEntity<List<String>> = ResponseEntity.ok(snippetService.getSnippetPermissionByUserId("1", "1"))
 
     @PostMapping("/prueba")
     fun prueba(): String = "Hola"
@@ -118,7 +116,7 @@ class SnippetController(
     // DE TESTEO SOLO PARA PROBAR EL ID DEL USUARIO
     @GetMapping("/id")
     fun getUserId(): ResponseEntity<String> {
-        val userId = service.getCurrentUserId()
+        val userId = snippetService.getCurrentUserId()
         return ResponseEntity.ok(userId)
     }
 
@@ -127,9 +125,9 @@ class SnippetController(
     fun viewSnippet(
         @PathVariable id: String,
     ): ResponseEntity<String> {
-        if (!service.snippetExists(id)) {
+        if (!snippetService.snippetExists(id)) {
             ResponseEntity.badRequest().body("Snippet not found!")
         }
-        return ResponseEntity.ok(service.getSnippetContent(id))
+        return ResponseEntity.ok(snippetService.getSnippetContent(id))
     }
 }
