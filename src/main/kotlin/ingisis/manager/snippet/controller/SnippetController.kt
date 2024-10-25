@@ -7,7 +7,6 @@ import ingisis.manager.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetInput
 import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetResponse
 import ingisis.manager.snippet.model.dto.restResponse.ValidationResponse
-import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.service.SnippetService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -43,27 +42,29 @@ class SnippetController(
     @PostMapping()
     fun createSnippet(
         @RequestBody input: CreateSnippetInput,
-    ): ResponseEntity<CreateSnippetResponse> {
-        return try {
-
+    ): ResponseEntity<CreateSnippetResponse> =
+        try {
             val snippet = snippetService.createSnippet(input)
 
             // If no errors, returns the snippet ID
             ResponseEntity.ok(CreateSnippetResponse("Successfully created snippet: " + snippet.id))
         } catch (e: InvalidSnippetException) {
             // If there are errors, returns the error message
-            ResponseEntity.badRequest().body(CreateSnippetResponse(
-                message = "Error creating snippet",
-                errors = e.errors,
-            ))
+            ResponseEntity.badRequest().body(
+                CreateSnippetResponse(
+                    message = "Error creating snippet",
+                    errors = e.errors,
+                ),
+            )
         } catch (e: Exception) {
             val errorMessage = e.message ?: "Internal server error"
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CreateSnippetResponse(
-                message = "Internal server error",
-                errors = listOf(StaticCodeAnalyzerError(message = errorMessage))
-            ))
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                CreateSnippetResponse(
+                    message = "Internal server error",
+                    errors = listOf(StaticCodeAnalyzerError(message = errorMessage)),
+                ),
+            )
         }
-    }
 
     @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping("/upload")
@@ -80,16 +81,20 @@ class SnippetController(
             ResponseEntity.ok(CreateSnippetResponse("Successfully created snippet: " + snippet.id))
         } catch (e: InvalidSnippetException) {
             // If there are errors, returns the error message
-            ResponseEntity.badRequest().body(CreateSnippetResponse(
-                message = "Error creating snippet",
-                errors = e.errors,
-            ))
+            ResponseEntity.badRequest().body(
+                CreateSnippetResponse(
+                    message = "Error creating snippet",
+                    errors = e.errors,
+                ),
+            )
         } catch (e: Exception) {
             val errorMessage = e.message ?: "Internal server error"
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CreateSnippetResponse(
-                message = "Internal server error",
-                errors = listOf(StaticCodeAnalyzerError(message = errorMessage))
-            ))
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                CreateSnippetResponse(
+                    message = "Internal server error",
+                    errors = listOf(StaticCodeAnalyzerError(message = errorMessage)),
+                ),
+            )
         }
     }
 
