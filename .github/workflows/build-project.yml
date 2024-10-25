@@ -26,4 +26,7 @@ jobs:
         uses: gradle/gradle-build-action@v2 #action para configurar gradle en el entorno de ejecución
 
       - name: Build project
+        env:
+          GITHUB_ACTOR: ${{ github.repository_owner }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         run: ./gradlew build
