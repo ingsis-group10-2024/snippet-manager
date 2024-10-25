@@ -1,9 +1,10 @@
 package ingisis.manager.snippet.service
 
+import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
-import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetInput
 import ingisis.manager.snippet.model.dto.SnippetRequest
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
+import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetInput
 import ingisis.manager.snippet.model.dto.restResponse.ValidationResponse
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.persistance.repository.SnippetRepository
@@ -44,35 +45,40 @@ class SnippetService
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
-                //   throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
+                val errors = lintResult.errors ?: emptyList() // Get the errors from the response
+                throw InvalidSnippetException(errors)
             }
             return repository.save(snippet)
         }
 
-        fun validateSnippet(content: String, version: String): ValidationResponse {
+        fun validateSnippet(
+            content: String,
+            version: String,
+        ): ValidationResponse {
             val request = SnippetRequest(content = content, languageVersion = version)
 
-            // Crear headers y añadir token de autorización
-            val headers = HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-                setBearerAuth(getJwtToken())
-            }
+            // Create headers with the JWT token
+            val headers =
+                HttpHeaders().apply {
+                    contentType = MediaType.APPLICATION_JSON
+                    setBearerAuth(getJwtToken())
+                }
 
             val entity = HttpEntity(request, headers)
-            println("Headers: $headers")  // Verificar que Authorization esté presente
+            println("Headers: $headers") // DEBUG
 
             return restTemplate.postForObject(
                 "http://language:8080/language/lint",
                 entity,
-                ValidationResponse::class.java
+                ValidationResponse::class.java,
             )!!
         }
 
-        // Función para obtener el JWT del usuario actual (según tu contexto de seguridad)
+        // Extract the JWT token from the authentication object
         private fun getJwtToken(): String {
             val authentication = SecurityContextHolder.getContext().authentication
             val jwt = authentication.principal as Jwt
-            println("JWT Token: ${jwt.tokenValue}")  // Extraer el token como cadena
+            println("JWT Token: ${jwt.tokenValue}") // DEBUG
             return jwt.tokenValue
         }
 

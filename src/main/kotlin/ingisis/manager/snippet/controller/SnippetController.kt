@@ -2,9 +2,10 @@ package ingisis.manager.snippet.controller
 
 import ingisis.manager.snippet.exception.InvalidSnippetException
 import ingisis.manager.snippet.exception.SnippetNotFoundException
-import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetInput
 import ingisis.manager.snippet.model.dto.SnippetRequest
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
+import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetInput
+import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetResponse
 import ingisis.manager.snippet.model.dto.restResponse.ValidationResponse
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.service.SnippetService
@@ -23,11 +24,13 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import sca.StaticCodeAnalyzerError
 
 @RestController
 @RequestMapping("/snippet")
 class SnippetController(
-    @Autowired private val snippetService: SnippetService, ) {
+    @Autowired private val snippetService: SnippetService,
+) {
     @PostMapping("/process")
     fun validateSnippet(
         @RequestBody request: SnippetRequest,
@@ -40,22 +43,53 @@ class SnippetController(
     @PostMapping()
     fun createSnippet(
         @RequestBody input: CreateSnippetInput,
-    ): ResponseEntity<Snippet> = ResponseEntity.ok(snippetService.createSnippet(input))
+    ): ResponseEntity<CreateSnippetResponse> {
+        return try {
+
+            val snippet = snippetService.createSnippet(input)
+
+            // If no errors, returns the snippet ID
+            ResponseEntity.ok(CreateSnippetResponse("Successfully created snippet: " + snippet.id))
+        } catch (e: InvalidSnippetException) {
+            // If there are errors, returns the error message
+            ResponseEntity.badRequest().body(CreateSnippetResponse(
+                message = "Error creating snippet",
+                errors = e.errors,
+            ))
+        } catch (e: Exception) {
+            val errorMessage = e.message ?: "Internal server error"
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CreateSnippetResponse(
+                message = "Internal server error",
+                errors = listOf(StaticCodeAnalyzerError(message = errorMessage))
+            ))
+        }
+    }
 
     @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping("/upload")
     fun uploadSnippet(
         @ModelAttribute input: CreateSnippetInput,
         @RequestParam("file") file: MultipartFile,
-    ): ResponseEntity<String> {
+    ): ResponseEntity<CreateSnippetResponse> {
         if (file.isEmpty) {
             return ResponseEntity.badRequest().body(null)
         }
         return try {
             val snippet = snippetService.processFileAndCreateSnippet(file, input)
-            ResponseEntity.ok("Snippet created: ${snippet.id}")
+            // If no errors, returns the snippet ID
+            ResponseEntity.ok(CreateSnippetResponse("Successfully created snippet: " + snippet.id))
         } catch (e: InvalidSnippetException) {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.message)
+            // If there are errors, returns the error message
+            ResponseEntity.badRequest().body(CreateSnippetResponse(
+                message = "Error creating snippet",
+                errors = e.errors,
+            ))
+        } catch (e: Exception) {
+            val errorMessage = e.message ?: "Internal server error"
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(CreateSnippetResponse(
+                message = "Internal server error",
+                errors = listOf(StaticCodeAnalyzerError(message = errorMessage))
+            ))
         }
     }
 
@@ -110,7 +144,7 @@ class SnippetController(
 
         // Lógica para validar o decodificar el token (Spring Security ya se encarga de esta parte)
         // Aquí puedes extraer información del token
-        return ResponseEntity.ok("Token válido. Token recibido: $token")
+        return ResponseEntity.ok("Valid token: $token")
     }
 
     // DE TESTEO SOLO PARA PROBAR EL ID DEL USUARIO

@@ -1,5 +1,6 @@
 package ingisis.manager.snippet.exception
 
-class InvalidSnippetException(
-    message: String,
-) : RuntimeException(message)
+import sca.StaticCodeAnalyzerError
+
+class InvalidSnippetException(val errors: List<StaticCodeAnalyzerError>) : RuntimeException("Snippet is invalid.")
+
