@@ -1,4 +1,4 @@
-package ingisis.manager.snippet.model.dto
+package ingisis.manager.snippet.model.dto.createSnippet
 
 import org.jetbrains.annotations.NotNull
 
