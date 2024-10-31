@@ -15,7 +15,7 @@ services:
 
 
   app:
-    container_name: "snippet-manager"
+    container_name: "manager-local"
     build:
       context: .
       dockerfile: Dockerfile
