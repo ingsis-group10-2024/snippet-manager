@@ -3,9 +3,6 @@ FROM gradle:8.5-jdk21 AS build
 ARG GITHUB_ACTOR
 ARG GITHUB_TOKEN
 
-ENV GITHUB_ACTOR=${ACTOR}
-ENV GITHUB_TOKEN=${TOKEN}
-
 COPY  . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle assemble
