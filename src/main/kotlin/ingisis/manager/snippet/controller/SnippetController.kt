@@ -34,7 +34,7 @@ class SnippetController(
     fun validateSnippet(
         @RequestBody request: SnippetRequest,
     ): ResponseEntity<ValidationResponse> {
-        val response = snippetService.validateSnippet(request.content, request.languageVersion)
+        val response = snippetService.validateSnippet(request.content, request.language, request.languageVersion)
         return ResponseEntity.ok(response)
     }
 

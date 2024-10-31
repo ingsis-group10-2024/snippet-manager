@@ -37,11 +37,11 @@ class SnippetService
                     name = input.name,
                     content = input.content,
                     language = input.language,
-                    version = input.version,
+                    languageVersion = input.languageVersion,
                     authorId = authorId,
                 )
 
-            val lintResult = validateSnippet(snippet.content, snippet.version)
+            val lintResult = validateSnippet(snippet.content, snippet.language, snippet.languageVersion)
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
@@ -53,9 +53,10 @@ class SnippetService
 
         fun validateSnippet(
             content: String,
-            version: String,
+            language: String,
+            languageVersion: String,
         ): ValidationResponse {
-            val request = SnippetRequest(content = content, languageVersion = version)
+            val request = SnippetRequest(content = content, languageVersion = languageVersion, language = language)
 
             // Create headers with the JWT token
             val headers =
@@ -115,7 +116,7 @@ class SnippetService
 
             val updatedSnippet = snippet.copy(name = updatedName, content = updatedContent)
 
-            val lintResult = validateSnippet(updatedSnippet.content, updatedSnippet.version)
+            val lintResult = validateSnippet(updatedSnippet.content, updatedSnippet.language, updatedSnippet.languageVersion)
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {

@@ -6,5 +6,6 @@ data class SnippetRequest(
     @NotNull
     val content: String,
     @NotNull
+    val language: String,
     val languageVersion: String,
 )
