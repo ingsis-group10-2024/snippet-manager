@@ -50,7 +50,7 @@ class SnippetService
                     extension = input.extension,
                 )
 
-            val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion, principal)
+            val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion)
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
@@ -65,10 +65,8 @@ class SnippetService
             content: String,
             language: String,
             languageVersion: String,
-            principal: Principal,
         ): ValidationResponse {
             val request = SnippetRequest(name = name, content = content, languageVersion = languageVersion, language = language)
-            println("Principal type: ${principal.javaClass.name}") // DEBUG
 
             // Create the headers for the request
             val headers = HttpHeaders().apply {
@@ -76,13 +74,15 @@ class SnippetService
             }
 
             val entity = HttpEntity(request, headers)
-            println("Headers: $headers") // DEBUG
-
-            return restTemplate.postForObject(
-                "http://runner:8080/runner/lint",
-                entity,
-                ValidationResponse::class.java,
-            )!!
+            return try {
+                restTemplate.postForObject(
+                    "http://runner:8080/runner/lint",
+                    entity,
+                    ValidationResponse::class.java,
+                ) ?: throw RuntimeException("No response from runner service")
+            } catch (ex: Exception) {
+                throw RuntimeException("Failed to validate snippet: ${ex.message}", ex)
+            }
         }
 
 //        fun getSnippetPermissionByUserId(
@@ -126,7 +126,6 @@ class SnippetService
                     updatedSnippet.content,
                     updatedSnippet.language,
                     updatedSnippet.languageVersion,
-                    principal = principal,
                 )
 
             // Throws exceptions if the snippet is invalid
