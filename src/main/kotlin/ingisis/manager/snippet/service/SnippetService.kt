@@ -5,10 +5,13 @@ import ingisis.manager.snippet.exception.SnippetNotFoundException
 import ingisis.manager.snippet.model.dto.SnippetRequest
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetInput
-import ingisis.manager.snippet.model.dto.restResponse.ValidationResponse
+import ingisis.manager.snippet.model.dto.restResponse.permission.PaginatedSnippetResponse
+import ingisis.manager.snippet.model.dto.restResponse.permission.SnippetDescriptor
+import ingisis.manager.snippet.model.dto.restResponse.runner.ValidationResponse
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
@@ -17,6 +20,7 @@ import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
+import java.security.Principal
 
 @Service
 class SnippetService
@@ -30,8 +34,8 @@ class SnippetService
                 SnippetNotFoundException("Snippet with ID $id not found")
             }
 
-        fun createSnippet(input: CreateSnippetInput): Snippet {
-            val authorId = getCurrentUserId() // Get the current user ID from the JWT token
+        fun createSnippet(input: CreateSnippetInput, principal: Principal): Snippet {
+            val authorId = principal.name
             val snippet =
                 Snippet(
                     name = input.name,
@@ -39,9 +43,10 @@ class SnippetService
                     language = input.language,
                     languageVersion = input.languageVersion,
                     authorId = authorId,
+                    extension = input.extension
                 )
 
-            val lintResult = validateSnippet(snippet.content, snippet.language, snippet.languageVersion)
+            val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion, principal)
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
@@ -52,62 +57,62 @@ class SnippetService
         }
 
         fun validateSnippet(
+            name: String,
             content: String,
             language: String,
             languageVersion: String,
+            principal: Principal
         ): ValidationResponse {
-            val request = SnippetRequest(content = content, languageVersion = languageVersion, language = language)
+            val request = SnippetRequest(name = name, content = content, languageVersion = languageVersion, language = language)
+            println("Principal type: ${principal.javaClass.name}") // DEBUG
 
             // Create headers with the JWT token
             val headers =
                 HttpHeaders().apply {
                     contentType = MediaType.APPLICATION_JSON
-                    setBearerAuth(getJwtToken())
+                    when (principal) {
+                        is Jwt -> setBearerAuth(principal.tokenValue)
+                        else -> throw IllegalArgumentException("Principal must be a JWT token")
+                    }
                 }
 
             val entity = HttpEntity(request, headers)
             println("Headers: $headers") // DEBUG
 
             return restTemplate.postForObject(
-                "http://language:8080/language/lint",
+                "http://runner:8080/runner/lint",
                 entity,
                 ValidationResponse::class.java,
             )!!
         }
 
-        // Extract the JWT token from the authentication object
-        private fun getJwtToken(): String {
-            val authentication = SecurityContextHolder.getContext().authentication
-            val jwt = authentication.principal as Jwt
-            println("JWT Token: ${jwt.tokenValue}") // DEBUG
-            return jwt.tokenValue
-        }
-
-        fun getSnippetPermissionByUserId(
-            snippetId: String,
-            userId: String,
-        ): List<String> {
-            val url = "http://localhost:8081/permission/permissions"
-            val request = mapOf("userId" to userId, "snippetId" to snippetId)
-            val response = restTemplate.postForEntity(url, request, List::class.java)
-            return response.body as List<String>
-        }
+//        fun getSnippetPermissionByUserId(
+//            snippetId: String,
+//            userId: String,
+//        ): List<String> {
+//            val url = "http://localhost:8081/permission/permissions"
+//            val request = mapOf("userId" to userId, "snippetId" to snippetId)
+//            val response = restTemplate.postForEntity(url, request, List::class.java)
+//            return response.body as List<String>
+//        }
 
         fun processFileAndCreateSnippet(
             file: MultipartFile,
             input: CreateSnippetInput,
+            principal: Principal
         ): Snippet {
             val content = file.inputStream.bufferedReader().use { it.readText() }
 
             val snippetData = input.copy(content = content)
 
-            return createSnippet(snippetData)
+            return createSnippet(snippetData, principal)
         }
 
         fun processFileAndUpdateSnippet(
             id: String,
             input: UpdateSnippetInput,
             file: MultipartFile?,
+            principal: Principal
         ): Snippet {
             val snippet = getSnippetById(id)
 
@@ -116,7 +121,7 @@ class SnippetService
 
             val updatedSnippet = snippet.copy(name = updatedName, content = updatedContent)
 
-            val lintResult = validateSnippet(updatedSnippet.content, updatedSnippet.language, updatedSnippet.languageVersion)
+            val lintResult = validateSnippet(updatedSnippet.name, updatedSnippet.content, updatedSnippet.language, updatedSnippet.languageVersion, principal = principal)
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
@@ -135,6 +140,31 @@ class SnippetService
         fun snippetExists(id: String): Boolean = !repository.findById(id).isEmpty
 
         fun getSnippetContent(id: String): String = repository.findById(id).get().content
+
+        fun getSnippets(principal: Principal, page: Int, pageSize: Int): PaginatedSnippetResponse {
+            val pageable = PageRequest.of(page, pageSize)
+            val snippetsPage = repository.findByAuthorId(principal.name, pageable)
+
+            // Convert the page to a list of SnippetDescriptor
+            val snippets = snippetsPage.content.map { snippet ->
+                SnippetDescriptor(
+                    id = snippet.id,
+                    name = snippet.name,
+                    authorId = snippet.authorId,
+                    createdAt = snippet.createdAt,
+                    content = snippet.content,
+                    language = snippet.language,
+                    languageVersion = snippet.languageVersion,
+                    isValid = false, // Initially, not validated
+                    validationErrors = null // Initially, no errors
+                )
+            }
+            return PaginatedSnippetResponse(
+                snippets = snippets,
+                totalPages = snippetsPage.totalPages,
+                totalElements = snippetsPage.totalElements
+            )
+        }
 
     /*
     override fun getAllSnippetsPermission(

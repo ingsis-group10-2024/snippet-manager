@@ -1,4 +1,4 @@
-package ingisis.manager.snippet.model.dto.restResponse
+package ingisis.manager.snippet.model.dto.restResponse.runner
 
 import sca.StaticCodeAnalyzerError
 

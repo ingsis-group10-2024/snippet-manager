@@ -23,4 +23,5 @@ data class Snippet(
     var content: String,
     var language: String,
     var languageVersion: String,
+    var extension: String,
 )
