@@ -17,6 +17,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
@@ -69,13 +70,14 @@ class SnippetService
             val request = SnippetRequest(name = name, content = content, languageVersion = languageVersion, language = language)
             println("Principal type: ${principal.javaClass.name}") // DEBUG
 
-            // Create headers with the JWT token
+            // Create the headers for the request
             val headers =
                 HttpHeaders().apply {
                     contentType = MediaType.APPLICATION_JSON
-                    when (principal) {
-                        is Jwt -> setBearerAuth(principal.tokenValue)
-                        else -> throw IllegalArgumentException("Principal must be a JWT token")
+                    if (principal is JwtAuthenticationToken) {
+                        setBearerAuth(principal.token.tokenValue)
+                    } else {
+                        throw IllegalArgumentException("Principal must be a JWT token")
                     }
                 }
 
