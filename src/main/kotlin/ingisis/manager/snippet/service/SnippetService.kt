@@ -71,15 +71,9 @@ class SnippetService
             println("Principal type: ${principal.javaClass.name}") // DEBUG
 
             // Create the headers for the request
-            val headers =
-                HttpHeaders().apply {
-                    contentType = MediaType.APPLICATION_JSON
-                    if (principal is JwtAuthenticationToken) {
-                        setBearerAuth(principal.token.tokenValue)
-                    } else {
-                        throw IllegalArgumentException("Principal must be a JWT token")
-                    }
-                }
+            val headers = HttpHeaders().apply {
+                contentType = MediaType.APPLICATION_JSON
+            }
 
             val entity = HttpEntity(request, headers)
             println("Headers: $headers") // DEBUG
