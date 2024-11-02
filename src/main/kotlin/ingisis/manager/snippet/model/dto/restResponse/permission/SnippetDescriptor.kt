@@ -12,5 +12,5 @@ data class SnippetDescriptor(
     val language: String,
     val languageVersion: String,
     val isValid: Boolean,
-    val validationErrors: List<StaticCodeAnalyzerError>? = null
+    val validationErrors: List<StaticCodeAnalyzerError>? = null,
 )

@@ -15,8 +15,8 @@ import org.springframework.security.web.SecurityFilterChain
 class SecurityConfig {
     @Bean
     @Throws(Exception::class)
-    fun filterChain(http: HttpSecurity): SecurityFilterChain {
-        return http
+    fun filterChain(http: HttpSecurity): SecurityFilterChain =
+        http
             .authorizeHttpRequests { authorize ->
                 authorize
                     .anyRequest()
@@ -26,10 +26,7 @@ class SecurityConfig {
                 oauth2
                     .jwt(withDefaults())
             }.build()
-    }
 
     @Bean
-    fun jwtDecoder(): JwtDecoder {
-        return NimbusJwtDecoder.withJwkSetUri("https://dev-8f0uq116yhuzay1x.us.auth0.com/.well-known/jwks.json").build()
-    }
+    fun jwtDecoder(): JwtDecoder = NimbusJwtDecoder.withJwkSetUri("https://dev-8f0uq116yhuzay1x.us.auth0.com/.well-known/jwks.json").build()
 }

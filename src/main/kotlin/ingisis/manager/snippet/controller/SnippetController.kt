@@ -28,31 +28,40 @@ import java.security.Principal
 
 @RestController
 @RequestMapping("/manager/snippet")
-class SnippetController(@Autowired private val snippetService: SnippetService) {
-
+class SnippetController(
+    @Autowired private val snippetService: SnippetService,
+) {
     @PostMapping("/validate")
-    fun validateSnippet(@RequestBody request: SnippetRequest, principal: Principal): ResponseEntity<ValidationResponse> {
-        val validationResponse = snippetService.validateSnippet(
-            name = request.name,
-            content = request.content,
-            language = request.language,
-            languageVersion = request.languageVersion,
-            principal = principal
-        )
+    fun validateSnippet(
+        @RequestBody request: SnippetRequest,
+        principal: Principal,
+    ): ResponseEntity<ValidationResponse> {
+        val validationResponse =
+            snippetService.validateSnippet(
+                name = request.name,
+                content = request.content,
+                language = request.language,
+                languageVersion = request.languageVersion,
+                principal = principal,
+            )
         return ResponseEntity.ok(validationResponse)
     }
 
     @PostMapping("/process")
     fun processSnippet(
-    @RequestBody request: SnippetRequest, principal: Principal
+        @RequestBody request: SnippetRequest,
+        principal: Principal,
     ): ResponseEntity<ValidationResponse> {
         val response = snippetService.validateSnippet(request.name, request.content, request.language, request.languageVersion, principal)
-            return ResponseEntity.ok(response)
+        return ResponseEntity.ok(response)
     }
 
     @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping()
-    fun createSnippet(@RequestBody input: CreateSnippetInput, principal: Principal): ResponseEntity<CreateSnippetResponse> =
+    fun createSnippet(
+        @RequestBody input: CreateSnippetInput,
+        principal: Principal,
+    ): ResponseEntity<CreateSnippetResponse> =
         try {
             val snippet = snippetService.createSnippet(input, principal)
 
@@ -63,22 +72,26 @@ class SnippetController(@Autowired private val snippetService: SnippetService) {
             ResponseEntity.badRequest().body(
                 CreateSnippetResponse(
                     message = "Error creating snippet",
-                    errors = e.errors),
-                )
-            } catch (e: Exception) {
-                val errorMessage = e.message ?: "Internal server error"
-                ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                    CreateSnippetResponse(
-                        message = "Internal server error",
-                        errors = listOf(StaticCodeAnalyzerError(message = errorMessage)),
-                    ),
-                )
-            }
+                    errors = e.errors,
+                ),
+            )
+        } catch (e: Exception) {
+            val errorMessage = e.message ?: "Internal server error"
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                CreateSnippetResponse(
+                    message = "Internal server error",
+                    errors = listOf(StaticCodeAnalyzerError(message = errorMessage)),
+                ),
+            )
+        }
 
     @PreAuthorize("hasAuthority('create:snippet')")
     @PostMapping("/upload")
     fun uploadSnippet(
-    @ModelAttribute input: CreateSnippetInput, @RequestParam("file") file: MultipartFile, principal: Principal): ResponseEntity<CreateSnippetResponse> {
+        @ModelAttribute input: CreateSnippetInput,
+        @RequestParam("file") file: MultipartFile,
+        principal: Principal,
+    ): ResponseEntity<CreateSnippetResponse> {
         if (file.isEmpty) {
             return ResponseEntity.badRequest().body(null)
         }
@@ -91,39 +104,41 @@ class SnippetController(@Autowired private val snippetService: SnippetService) {
             ResponseEntity.badRequest().body(
                 CreateSnippetResponse(
                     message = "Error creating snippet",
-                    errors = e.errors,),
-                )
+                    errors = e.errors,
+                ),
+            )
         } catch (e: Exception) {
             val errorMessage = e.message ?: "Internal server error"
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 CreateSnippetResponse(
                     message = "Internal server error",
-                    errors = listOf(StaticCodeAnalyzerError(message = errorMessage))
-                ))
-            }
+                    errors = listOf(StaticCodeAnalyzerError(message = errorMessage)),
+                ),
+            )
+        }
+    }
+
+    @PreAuthorize("hasAuthority('update:snippet')")
+    @PutMapping("/update/{id}")
+    fun updateSnippet(
+        @PathVariable id: String,
+        @ModelAttribute input: UpdateSnippetInput,
+        @RequestParam("file") file: MultipartFile,
+        principal: Principal,
+    ): ResponseEntity<String> {
+        if (input.name.isNullOrBlank() && (file.isEmpty)) {
+            return ResponseEntity.badRequest().body("No changes provided for snippet.")
         }
 
-        @PreAuthorize("hasAuthority('update:snippet')")
-        @PutMapping("/update/{id}")
-        fun updateSnippet(
-            @PathVariable id: String,
-            @ModelAttribute input: UpdateSnippetInput,
-            @RequestParam("file") file: MultipartFile,
-            principal: Principal
-        ): ResponseEntity<String> {
-            if (input.name.isNullOrBlank() && (file.isEmpty)) {
-                return ResponseEntity.badRequest().body("No changes provided for snippet.")
-            }
-
-            return try {
-                val updatedSnippet = snippetService.processFileAndUpdateSnippet(id, input, file, principal)
-                ResponseEntity.ok("Snippet updated: ${updatedSnippet.id}")
-            } catch (e: InvalidSnippetException) {
-                ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.message)
-            } catch (e: SnippetNotFoundException) {
-                ResponseEntity.status(HttpStatus.NOT_FOUND).body("Snippet not found")
-            }
+        return try {
+            val updatedSnippet = snippetService.processFileAndUpdateSnippet(id, input, file, principal)
+            ResponseEntity.ok("Snippet updated: ${updatedSnippet.id}")
+        } catch (e: InvalidSnippetException) {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.message)
+        } catch (e: SnippetNotFoundException) {
+            ResponseEntity.status(HttpStatus.NOT_FOUND).body("Snippet not found")
         }
+    }
 
     //    @GetMapping("/{id}/validate")
     //    fun validateSnippet(
@@ -145,7 +160,6 @@ class SnippetController(@Autowired private val snippetService: SnippetService) {
     @PostMapping("/prueba")
     fun prueba(): String = "Hola"
 
-
     // DEBUG TO TEST USER ID
     @GetMapping("/id")
     fun getUserId(): ResponseEntity<String> {
@@ -155,39 +169,47 @@ class SnippetController(@Autowired private val snippetService: SnippetService) {
 
     @PreAuthorize("hasAuthority('read:snippet')")
     @GetMapping("/view/{id}")
-     fun viewSnippet(@PathVariable id: String): ResponseEntity<String> {
-         if (!snippetService.snippetExists(id)) {
-             ResponseEntity.badRequest().body("Snippet not found!")
-         }
+    fun viewSnippet(
+        @PathVariable id: String,
+    ): ResponseEntity<String> {
+        if (!snippetService.snippetExists(id)) {
+            ResponseEntity.badRequest().body("Snippet not found!")
+        }
         return ResponseEntity.ok(snippetService.getSnippetContent(id))
-     }
+    }
 
     @PreAuthorize("hasAuthority('SCOPE_read:snippet')")
     @GetMapping
-    fun geSnippets(@RequestParam page: Int, @RequestParam pageSize: Int, principal: Principal): PaginatedSnippetResponse {
+    fun geSnippets(
+        @RequestParam page: Int,
+        @RequestParam pageSize: Int,
+        principal: Principal,
+    ): PaginatedSnippetResponse {
         // Get the paginated snippets
         val paginatedResponse = snippetService.getSnippets(principal, page, pageSize)
 
         // Validate each snippet
-        val validatedSnippets = paginatedResponse.snippets.map { snippet ->
-            val validationResponse = snippetService.validateSnippet(
-                name = snippet.name,
-                content = snippet.content,
-                language = snippet.language,
-                languageVersion = snippet.languageVersion,
-                principal = principal
-            )
-            // Create a new SnippetDescriptor with the validation results
-            snippet.copy(
-                isValid = validationResponse.isValid,
-                validationErrors = if (validationResponse.isValid) null else validationResponse.errors
-            )
-        }
+        val validatedSnippets =
+            paginatedResponse.snippets.map { snippet ->
+                val validationResponse =
+                    snippetService.validateSnippet(
+                        name = snippet.name,
+                        content = snippet.content,
+                        language = snippet.language,
+                        languageVersion = snippet.languageVersion,
+                        principal = principal,
+                    )
+                // Create a new SnippetDescriptor with the validation results
+                snippet.copy(
+                    isValid = validationResponse.isValid,
+                    validationErrors = if (validationResponse.isValid) null else validationResponse.errors,
+                )
+            }
         // Build the response
         return PaginatedSnippetResponse(
             snippets = validatedSnippets,
             totalPages = paginatedResponse.totalPages,
-            totalElements = paginatedResponse.totalElements
+            totalElements = paginatedResponse.totalElements,
         )
     }
 }

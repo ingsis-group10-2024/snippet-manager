@@ -34,7 +34,10 @@ class SnippetService
                 SnippetNotFoundException("Snippet with ID $id not found")
             }
 
-        fun createSnippet(input: CreateSnippetInput, principal: Principal): Snippet {
+        fun createSnippet(
+            input: CreateSnippetInput,
+            principal: Principal,
+        ): Snippet {
             val authorId = principal.name
             val snippet =
                 Snippet(
@@ -43,7 +46,7 @@ class SnippetService
                     language = input.language,
                     languageVersion = input.languageVersion,
                     authorId = authorId,
-                    extension = input.extension
+                    extension = input.extension,
                 )
 
             val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion, principal)
@@ -61,7 +64,7 @@ class SnippetService
             content: String,
             language: String,
             languageVersion: String,
-            principal: Principal
+            principal: Principal,
         ): ValidationResponse {
             val request = SnippetRequest(name = name, content = content, languageVersion = languageVersion, language = language)
             println("Principal type: ${principal.javaClass.name}") // DEBUG
@@ -99,7 +102,7 @@ class SnippetService
         fun processFileAndCreateSnippet(
             file: MultipartFile,
             input: CreateSnippetInput,
-            principal: Principal
+            principal: Principal,
         ): Snippet {
             val content = file.inputStream.bufferedReader().use { it.readText() }
 
@@ -112,7 +115,7 @@ class SnippetService
             id: String,
             input: UpdateSnippetInput,
             file: MultipartFile?,
-            principal: Principal
+            principal: Principal,
         ): Snippet {
             val snippet = getSnippetById(id)
 
@@ -121,7 +124,14 @@ class SnippetService
 
             val updatedSnippet = snippet.copy(name = updatedName, content = updatedContent)
 
-            val lintResult = validateSnippet(updatedSnippet.name, updatedSnippet.content, updatedSnippet.language, updatedSnippet.languageVersion, principal = principal)
+            val lintResult =
+                validateSnippet(
+                    updatedSnippet.name,
+                    updatedSnippet.content,
+                    updatedSnippet.language,
+                    updatedSnippet.languageVersion,
+                    principal = principal,
+                )
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
@@ -141,28 +151,33 @@ class SnippetService
 
         fun getSnippetContent(id: String): String = repository.findById(id).get().content
 
-        fun getSnippets(principal: Principal, page: Int, pageSize: Int): PaginatedSnippetResponse {
+        fun getSnippets(
+            principal: Principal,
+            page: Int,
+            pageSize: Int,
+        ): PaginatedSnippetResponse {
             val pageable = PageRequest.of(page, pageSize)
             val snippetsPage = repository.findByAuthorId(principal.name, pageable)
 
             // Convert the page to a list of SnippetDescriptor
-            val snippets = snippetsPage.content.map { snippet ->
-                SnippetDescriptor(
-                    id = snippet.id,
-                    name = snippet.name,
-                    authorId = snippet.authorId,
-                    createdAt = snippet.createdAt,
-                    content = snippet.content,
-                    language = snippet.language,
-                    languageVersion = snippet.languageVersion,
-                    isValid = false, // Initially, not validated
-                    validationErrors = null // Initially, no errors
-                )
-            }
+            val snippets =
+                snippetsPage.content.map { snippet ->
+                    SnippetDescriptor(
+                        id = snippet.id,
+                        name = snippet.name,
+                        authorId = snippet.authorId,
+                        createdAt = snippet.createdAt,
+                        content = snippet.content,
+                        language = snippet.language,
+                        languageVersion = snippet.languageVersion,
+                        isValid = false, // Initially, not validated
+                        validationErrors = null, // Initially, no errors
+                    )
+                }
             return PaginatedSnippetResponse(
                 snippets = snippets,
                 totalPages = snippetsPage.totalPages,
-                totalElements = snippetsPage.totalElements
+                totalElements = snippetsPage.totalElements,
             )
         }
 
