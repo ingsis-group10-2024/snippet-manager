@@ -13,13 +13,12 @@ import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpMethod
-import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 import java.security.Principal
@@ -32,7 +31,7 @@ class SnippetService
         private val repository: SnippetRepository,
         private val restTemplate: RestTemplate,
     ) {
-        private fun getSnippetById(id: String): Snippet =
+    private fun getSnippetById(id: String): Snippet =
             repository.findById(id).orElseThrow {
                 SnippetNotFoundException("Snippet with ID $id not found")
             }
@@ -40,6 +39,7 @@ class SnippetService
         fun createSnippet(
             input: CreateSnippetInput,
             principal: Principal,
+            authorizationHeader: String
         ): Snippet {
             val authorId = principal.name
             val snippet =
@@ -51,8 +51,10 @@ class SnippetService
                     authorId = authorId,
                     extension = input.extension,
                 )
+            println("AuthorID: $authorId")
+            println("Creating snippet: $snippet")
 
-            val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion)
+            val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion, authorizationHeader)
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
@@ -67,21 +69,19 @@ class SnippetService
             content: String,
             language: String,
             languageVersion: String,
+            authorizationHeader: String
         ): ValidationResponse {
-            val request = SnippetRequest(name = name, content = content, languageVersion = languageVersion, language = language)
+            val snippetRequest = SnippetRequest(name = name, content = content, languageVersion = languageVersion, language = language)
 
-            // Create the headers for the request
-            val headers =
-                HttpHeaders().apply {
-                    contentType = MediaType.APPLICATION_JSON
-                }
+            val headers: MultiValueMap<String, String> = LinkedMultiValueMap()
+            headers.add("Authorization", authorizationHeader)
+            headers.add("Content-Type", "application/json")
+            val requestEntity = HttpEntity(snippetRequest, headers)
 
-            val entity = HttpEntity<SnippetRequest>(request, headers)
-            val response: ResponseEntity<ValidationResponse> = restTemplate.exchange(
-                "http://runner:8080/runner/lint", HttpMethod.POST, entity, ValidationResponse::class.java
-            )
-            return response.body!!
+            val response: ResponseEntity<ValidationResponse> = restTemplate.postForEntity("http://snippet-runner:8080/runner/lint", requestEntity, ValidationResponse::class.java)
+            return response.body ?: throw RuntimeException("Error obtaining response from runner service")
         }
+
 
 //        fun getSnippetPermissionByUserId(
 //            snippetId: String,
@@ -97,12 +97,13 @@ class SnippetService
             file: MultipartFile,
             input: CreateSnippetInput,
             principal: Principal,
+            authorizationHeader: String
         ): Snippet {
             val content = file.inputStream.bufferedReader().use { it.readText() }
 
             val snippetData = input.copy(content = content)
 
-            return createSnippet(snippetData, principal)
+            return createSnippet(snippetData, principal, authorizationHeader)
         }
 
         fun processFileAndUpdateSnippet(
@@ -110,6 +111,7 @@ class SnippetService
             input: UpdateSnippetInput,
             file: MultipartFile?,
             principal: Principal,
+            authorizationHeader: String
         ): Snippet {
             val snippet = getSnippetById(id)
 
@@ -124,11 +126,13 @@ class SnippetService
                     updatedSnippet.content,
                     updatedSnippet.language,
                     updatedSnippet.languageVersion,
+                    authorizationHeader
                 )
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
-                //   throw InvalidSnippetException("Snippet is invalid: ${lintResult.errors}")
+                val errors = lintResult.errors ?: emptyList() // Get the errors from the response
+                throw InvalidSnippetException(errors)
             }
 
             return repository.save(updatedSnippet)
