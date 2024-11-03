@@ -20,7 +20,7 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          username: ${{ secrets.ACTOR}}
           password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Build and Push to GitHub Packages
@@ -37,3 +37,5 @@ jobs:
             AUTH_SERVER_URI=${{ secrets.AUTH_SERVER_URI }}
             AUTH_CLIENT_ID=${{ secrets.AUTH_CLIENT_ID }}
             AUTH_CLIENT_SECRET=${{ secrets.AUTH_CLIENT_SECRET }}
+
+
