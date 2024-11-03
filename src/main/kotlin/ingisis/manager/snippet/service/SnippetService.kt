@@ -23,7 +23,6 @@ import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 import java.security.Principal
 
-
 @Service
 class SnippetService
     @Autowired
@@ -31,7 +30,7 @@ class SnippetService
         private val repository: SnippetRepository,
         private val restTemplate: RestTemplate,
     ) {
-    private fun getSnippetById(id: String): Snippet =
+        private fun getSnippetById(id: String): Snippet =
             repository.findById(id).orElseThrow {
                 SnippetNotFoundException("Snippet with ID $id not found")
             }
@@ -39,7 +38,7 @@ class SnippetService
         fun createSnippet(
             input: CreateSnippetInput,
             principal: Principal,
-            authorizationHeader: String
+            authorizationHeader: String,
         ): Snippet {
             val authorId = principal.name
             val snippet =
@@ -69,7 +68,7 @@ class SnippetService
             content: String,
             language: String,
             languageVersion: String,
-            authorizationHeader: String
+            authorizationHeader: String,
         ): ValidationResponse {
             val snippetRequest = SnippetRequest(name = name, content = content, languageVersion = languageVersion, language = language)
 
@@ -78,10 +77,14 @@ class SnippetService
             headers.add("Content-Type", "application/json")
             val requestEntity = HttpEntity(snippetRequest, headers)
 
-            val response: ResponseEntity<ValidationResponse> = restTemplate.postForEntity("http://snippet-runner:8080/runner/lint", requestEntity, ValidationResponse::class.java)
+            val response: ResponseEntity<ValidationResponse> =
+                restTemplate.postForEntity(
+                    "http://snippet-runner:8080/runner/lint",
+                    requestEntity,
+                    ValidationResponse::class.java,
+                )
             return response.body ?: throw RuntimeException("Error obtaining response from runner service")
         }
-
 
 //        fun getSnippetPermissionByUserId(
 //            snippetId: String,
@@ -97,7 +100,7 @@ class SnippetService
             file: MultipartFile,
             input: CreateSnippetInput,
             principal: Principal,
-            authorizationHeader: String
+            authorizationHeader: String,
         ): Snippet {
             val content = file.inputStream.bufferedReader().use { it.readText() }
 
@@ -111,7 +114,7 @@ class SnippetService
             input: UpdateSnippetInput,
             file: MultipartFile?,
             principal: Principal,
-            authorizationHeader: String
+            authorizationHeader: String,
         ): Snippet {
             val snippet = getSnippetById(id)
 
@@ -126,7 +129,7 @@ class SnippetService
                     updatedSnippet.content,
                     updatedSnippet.language,
                     updatedSnippet.languageVersion,
-                    authorizationHeader
+                    authorizationHeader,
                 )
 
             // Throws exceptions if the snippet is invalid

@@ -36,7 +36,7 @@ class SnippetController(
     fun validateSnippet(
         @RequestBody request: SnippetRequest,
         principal: Principal,
-        @RequestHeader("Authorization") authorizationHeader: String
+        @RequestHeader("Authorization") authorizationHeader: String,
     ): ResponseEntity<ValidationResponse> {
         val validationResponse =
             snippetService.validateSnippet(
@@ -53,7 +53,7 @@ class SnippetController(
     fun processSnippet(
         @RequestBody request: SnippetRequest,
         principal: Principal,
-        @RequestHeader("Authorization") authorizationHeader: String
+        @RequestHeader("Authorization") authorizationHeader: String,
     ): ResponseEntity<ValidationResponse> {
         val response = snippetService.validateSnippet(request.name, request.content, request.language, request.languageVersion, authorizationHeader)
         return ResponseEntity.ok(response)
@@ -64,10 +64,9 @@ class SnippetController(
     fun createSnippet(
         @RequestBody input: CreateSnippetInput,
         principal: Principal,
-        @RequestHeader("Authorization") authorizationHeader: String
+        @RequestHeader("Authorization") authorizationHeader: String,
     ): ResponseEntity<CreateSnippetResponse> =
         try {
-
             val snippet = snippetService.createSnippet(input, principal, authorizationHeader)
 
             // If no errors, returns the snippet ID
@@ -96,7 +95,7 @@ class SnippetController(
         @ModelAttribute input: CreateSnippetInput,
         @RequestParam("file") file: MultipartFile,
         principal: Principal,
-        @RequestHeader("Authorization") authorizationHeader: String
+        @RequestHeader("Authorization") authorizationHeader: String,
     ): ResponseEntity<CreateSnippetResponse> {
         if (file.isEmpty) {
             return ResponseEntity.badRequest().body(null)
@@ -131,7 +130,7 @@ class SnippetController(
         @ModelAttribute input: UpdateSnippetInput,
         @RequestParam("file") file: MultipartFile,
         principal: Principal,
-        @RequestHeader("Authorization") authorizationHeader: String
+        @RequestHeader("Authorization") authorizationHeader: String,
     ): ResponseEntity<String> {
         if (input.name.isNullOrBlank() && (file.isEmpty)) {
             return ResponseEntity.badRequest().body("No changes provided for snippet.")
@@ -191,7 +190,7 @@ class SnippetController(
         @RequestParam page: Int,
         @RequestParam pageSize: Int,
         principal: Principal,
-        @RequestHeader("Authorization") authorizationHeader: String
+        @RequestHeader("Authorization") authorizationHeader: String,
     ): PaginatedSnippetResponse {
         // Get the paginated snippets
         val paginatedResponse = snippetService.getSnippets(principal, page, pageSize)
