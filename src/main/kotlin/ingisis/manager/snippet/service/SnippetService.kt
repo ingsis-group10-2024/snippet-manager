@@ -14,14 +14,16 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.Jwt
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 import java.security.Principal
+
 
 @Service
 class SnippetService
@@ -69,20 +71,16 @@ class SnippetService
             val request = SnippetRequest(name = name, content = content, languageVersion = languageVersion, language = language)
 
             // Create the headers for the request
-            val headers = HttpHeaders().apply {
-                contentType = MediaType.APPLICATION_JSON
-            }
+            val headers =
+                HttpHeaders().apply {
+                    contentType = MediaType.APPLICATION_JSON
+                }
 
-            val entity = HttpEntity(request, headers)
-            return try {
-                restTemplate.postForObject(
-                    "http://runner:8080/runner/lint",
-                    entity,
-                    ValidationResponse::class.java,
-                ) ?: throw RuntimeException("No response from runner service")
-            } catch (ex: Exception) {
-                throw RuntimeException("Failed to validate snippet: ${ex.message}", ex)
-            }
+            val entity = HttpEntity<SnippetRequest>(request, headers)
+            val response: ResponseEntity<ValidationResponse> = restTemplate.exchange(
+                "http://runner:8080/runner/lint", HttpMethod.POST, entity, ValidationResponse::class.java
+            )
+            return response.body!!
         }
 
 //        fun getSnippetPermissionByUserId(
