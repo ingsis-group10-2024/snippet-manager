@@ -14,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpEntity
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
@@ -141,12 +139,6 @@ class SnippetService
             return repository.save(updatedSnippet)
         }
 
-        fun getCurrentUserId(): String {
-            val authentication = SecurityContextHolder.getContext().authentication
-            val jwt = authentication.principal as Jwt
-            return jwt.claims["sub"] as String // 'sub' is the user ID in the JWT token
-        }
-
         fun snippetExists(id: String): Boolean = !repository.findById(id).isEmpty
 
         fun getSnippetContent(id: String): String = repository.findById(id).get().content
@@ -158,6 +150,7 @@ class SnippetService
         ): PaginatedSnippetResponse {
             val pageable = PageRequest.of(page, pageSize)
             val snippetsPage = repository.findByAuthorId(principal.name, pageable)
+            println("Snippets encontrados: ${snippetsPage.content[0]}") // DEBUG
 
             // Convert the page to a list of SnippetDescriptor
             val snippets =
@@ -174,6 +167,7 @@ class SnippetService
                         validationErrors = null, // Initially, no errors
                     )
                 }
+
             return PaginatedSnippetResponse(
                 snippets = snippets,
                 totalPages = snippetsPage.totalPages,

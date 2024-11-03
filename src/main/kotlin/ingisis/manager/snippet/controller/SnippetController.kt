@@ -166,12 +166,8 @@ class SnippetController(
     @PostMapping("/prueba")
     fun prueba(): String = "Hola"
 
-    // DEBUG TO TEST USER ID
     @GetMapping("/id")
-    fun getUserId(): ResponseEntity<String> {
-        val userId = snippetService.getCurrentUserId()
-        return ResponseEntity.ok(userId)
-    }
+    fun getUserId(principal: Principal): ResponseEntity<String> = ResponseEntity.ok(principal.name)
 
     @PreAuthorize("hasAuthority('read:snippet')")
     @GetMapping("/view/{id}")
@@ -194,7 +190,7 @@ class SnippetController(
     ): PaginatedSnippetResponse {
         // Get the paginated snippets
         val paginatedResponse = snippetService.getSnippets(principal, page, pageSize)
-
+        println("paginatedResponse: $paginatedResponse")
         // Validate each snippet
         val validatedSnippets =
             paginatedResponse.snippets.map { snippet ->
@@ -212,6 +208,9 @@ class SnippetController(
                     validationErrors = if (validationResponse.isValid) null else validationResponse.errors,
                 )
             }
+
+        println("Snippets validados: $validatedSnippets") // DEBUG
+
         // Build the response
         return PaginatedSnippetResponse(
             snippets = validatedSnippets,
