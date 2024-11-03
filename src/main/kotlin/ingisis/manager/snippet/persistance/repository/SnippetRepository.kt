@@ -7,7 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.repository.query.Param
 
 interface SnippetRepository : JpaRepository<Snippet, String> {
-    fun findByAuthorId(@Param("authorId")
+    fun findByAuthorId(
+        @Param("authorId")
         authorId: String,
         pageable: Pageable,
     ): Page<Snippet>

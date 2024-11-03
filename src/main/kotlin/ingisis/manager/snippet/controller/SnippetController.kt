@@ -167,9 +167,7 @@ class SnippetController(
     fun prueba(): String = "Hola"
 
     @GetMapping("/id")
-    fun getUserId(principal: Principal): ResponseEntity<String> {
-        return ResponseEntity.ok(principal.name)
-    }
+    fun getUserId(principal: Principal): ResponseEntity<String> = ResponseEntity.ok(principal.name)
 
     @PreAuthorize("hasAuthority('read:snippet')")
     @GetMapping("/view/{id}")
@@ -212,7 +210,6 @@ class SnippetController(
             }
 
         println("Snippets validados: $validatedSnippets") // DEBUG
-
 
         // Build the response
         return PaginatedSnippetResponse(
