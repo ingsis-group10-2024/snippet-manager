@@ -1,4 +1,4 @@
-package ingisis.manager.snippet.model.dto.restResponse.permission
+package ingisis.manager.snippet.model.dto.rest.permission
 
 data class PaginatedSnippetResponse(
     val snippets: List<SnippetDescriptor>,
