@@ -28,6 +28,5 @@ services:
     depends_on:
       - manager-db
 
-
 volumes:
   postgres-data:
