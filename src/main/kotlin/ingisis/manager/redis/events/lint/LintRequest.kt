@@ -8,4 +8,3 @@ data class LintRequest(
     val snippetContent: String,
     val rules: LinterRules,
 )
-

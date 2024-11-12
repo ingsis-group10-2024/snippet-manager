@@ -7,10 +7,8 @@ data class LintResultEvent(
     val status: ResultStatus,
 )
 
-
 enum class ResultStatus {
     PASSED,
     PENDING,
     FAILED,
 }
-
