@@ -124,13 +124,14 @@ class SnippetService
             val updatedName = input.name ?: snippet.name
             val updatedContent = file?.inputStream?.bufferedReader()?.use { it.readText() } ?: snippet.content
 
-            val updatedContentUrl = if (file != null) {
-                // Upload the new content to Azurite
-                azuriteService.uploadContentToAzurite(snippet.id, updatedContent)
-            } else {
-                // If there is no file, the content stays the same
-                snippet.content
-            }
+            val updatedContentUrl =
+                if (file != null) {
+                    // Upload the new content to Azurite
+                    azuriteService.uploadContentToAzurite(snippet.id, updatedContent)
+                } else {
+                    // If there is no file, the content stays the same
+                    snippet.content
+                }
 
             val updatedSnippet = snippet.copy(name = updatedName, content = updatedContentUrl)
 
