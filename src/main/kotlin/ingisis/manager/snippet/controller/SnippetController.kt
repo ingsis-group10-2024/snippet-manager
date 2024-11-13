@@ -6,8 +6,9 @@ import ingisis.manager.snippet.model.dto.SnippetRequest
 import ingisis.manager.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetInput
 import ingisis.manager.snippet.model.dto.createSnippet.CreateSnippetResponse
-import ingisis.manager.snippet.model.dto.restResponse.permission.PaginatedSnippetResponse
-import ingisis.manager.snippet.model.dto.restResponse.runner.ValidationResponse
+import ingisis.manager.snippet.model.dto.rest.permission.PaginatedSnippetResponse
+import ingisis.manager.snippet.model.dto.rest.permission.SnippetDescriptor
+import ingisis.manager.snippet.model.dto.rest.runner.ValidationResponse
 import ingisis.manager.snippet.service.SnippetService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -59,7 +60,7 @@ class SnippetController(
         return ResponseEntity.ok(response)
     }
 
-    @PreAuthorize("hasAuthority('create:snippet')")
+    @PreAuthorize("hasAuthority('SCOPE_create:snippet')")
     @PostMapping()
     fun createSnippet(
         @RequestBody input: CreateSnippetInput,
@@ -89,7 +90,7 @@ class SnippetController(
             )
         }
 
-    @PreAuthorize("hasAuthority('create:snippet')")
+    @PreAuthorize("hasAuthority('SCOPE_create:snippet')")
     @PostMapping("/upload")
     fun uploadSnippet(
         @ModelAttribute input: CreateSnippetInput,
@@ -123,7 +124,7 @@ class SnippetController(
         }
     }
 
-    @PreAuthorize("hasAuthority('update:snippet')")
+    @PreAuthorize("hasAuthority('SCOPE_update:snippet')")
     @PutMapping("/update/{id}")
     fun updateSnippet(
         @PathVariable id: String,
@@ -149,7 +150,7 @@ class SnippetController(
     @GetMapping("/id")
     fun getUserId(principal: Principal): ResponseEntity<String> = ResponseEntity.ok(principal.name)
 
-    @PreAuthorize("hasAuthority('read:snippet')")
+    @PreAuthorize("hasAuthority('SCOPE_read:snippet')")
     @GetMapping("/view/{id}")
     fun viewSnippet(
         @PathVariable id: String,
@@ -161,15 +162,15 @@ class SnippetController(
     }
 
     @PreAuthorize("hasAuthority('SCOPE_read:snippet')")
-    @GetMapping
-    fun geSnippets(
+    @GetMapping("/snippets")
+    fun getSnippets(
         @RequestParam page: Int,
         @RequestParam pageSize: Int,
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
     ): PaginatedSnippetResponse {
         // Get the paginated snippets
-        val paginatedResponse = snippetService.getSnippets(principal, page, pageSize)
+        val paginatedResponse = snippetService.getSnippets(principal, page, pageSize, authorizationHeader)
         println("paginatedResponse: $paginatedResponse")
         // Validate each snippet
         val validatedSnippets =
@@ -197,5 +198,36 @@ class SnippetController(
             totalPages = paginatedResponse.totalPages,
             totalElements = paginatedResponse.totalElements,
         )
+    }
+
+    @PreAuthorize("hasAuthority('SCOPE_read:snippet')")
+    @GetMapping("/get/{snippetId}")
+    fun getSnippetDescriptor(
+        @PathVariable snippetId: String,
+        @RequestHeader("Authorization") authorizationHeader: String,
+    ): ResponseEntity<SnippetDescriptor> {
+        val snippet = snippetService.getSnippetById(snippetId)
+
+        val validationResponse =
+            snippetService.validateSnippet(
+                name = snippet.name,
+                content = snippet.content,
+                language = snippet.language,
+                languageVersion = snippet.languageVersion,
+                authorizationHeader = authorizationHeader,
+            )
+        val snippetDescriptor =
+            SnippetDescriptor(
+                id = snippet.id,
+                name = snippet.name,
+                authorId = snippet.authorId,
+                createdAt = snippet.createdAt,
+                content = snippet.content,
+                language = snippet.language,
+                languageVersion = snippet.languageVersion,
+                isValid = validationResponse.isValid,
+                validationErrors = validationResponse.errors,
+            )
+        return ResponseEntity.ok(snippetDescriptor)
     }
 }
