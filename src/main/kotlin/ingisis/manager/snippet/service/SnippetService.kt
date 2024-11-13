@@ -27,6 +27,7 @@ class SnippetService
     constructor(
         private val repository: SnippetRepository,
         private val restTemplate: RestTemplate,
+        private val azuriteService: AzuriteService,
     ) {
         private fun getSnippetById(id: String): Snippet =
             repository.findById(id).orElseThrow {
@@ -38,11 +39,12 @@ class SnippetService
             principal: Principal,
             authorizationHeader: String,
         ): Snippet {
+
             val authorId = principal.name
             val snippet =
                 Snippet(
                     name = input.name,
-                    content = input.content,
+                    content = "", //Initially empty
                     language = input.language,
                     languageVersion = input.languageVersion,
                     authorId = authorId,
@@ -50,6 +52,10 @@ class SnippetService
                 )
             println("AuthorID: $authorId")
             println("Creating snippet: $snippet")
+            repository.save(snippet)
+
+            val blobUrl = azuriteService.uploadContentToAzurite(snippet.id, input.content)
+            snippet.content = blobUrl
 
             val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion, authorizationHeader)
 
@@ -150,17 +156,22 @@ class SnippetService
         ): PaginatedSnippetResponse {
             val pageable = PageRequest.of(page, pageSize)
             val snippetsPage = repository.findByAuthorId(principal.name, pageable)
-            println("Snippets encontrados: ${snippetsPage.content[0]}") // DEBUG
+            println("Snippets found: ${snippetsPage.content[0]}") // DEBUG
 
             // Convert the page to a list of SnippetDescriptor
             val snippets =
                 snippetsPage.content.map { snippet ->
+                    val snippetContent = azuriteService.getSnippetContent(snippet.content)?.let {
+                        it.bufferedReader().use { reader -> reader.readText() }
+                    } ?: "Content not available"
+
+
                     SnippetDescriptor(
                         id = snippet.id,
                         name = snippet.name,
                         authorId = snippet.authorId,
                         createdAt = snippet.createdAt,
-                        content = snippet.content,
+                        content = snippetContent,
                         language = snippet.language,
                         languageVersion = snippet.languageVersion,
                         isValid = false, // Initially, not validated
