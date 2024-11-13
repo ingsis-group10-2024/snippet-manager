@@ -146,26 +146,6 @@ class SnippetController(
         }
     }
 
-    //    @GetMapping("/{id}/validate")
-    //    fun validateSnippet(
-    //        @PathVariable id: String,
-    //        @RequestParam version: String,
-    //    ): ResponseEntity<SnippetValidationResponse> =
-    //        try {
-    //            val snippetValidationResponse = service.validateSnippet(id, version)
-    //            ResponseEntity.ok(snippetValidationResponse)
-    //        } catch (e: SnippetNotFoundException) {
-    //            ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
-    //        } catch (e: IllegalArgumentException) {
-    //            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
-    //        }
-
-//    @GetMapping("/permissions")
-//    fun getPermissions(): ResponseEntity<List<String>> = ResponseEntity.ok(snippetService.getSnippetPermissionByUserId("1", "1"))
-
-    @PostMapping("/prueba")
-    fun prueba(): String = "Hola"
-
     @GetMapping("/id")
     fun getUserId(principal: Principal): ResponseEntity<String> = ResponseEntity.ok(principal.name)
 
