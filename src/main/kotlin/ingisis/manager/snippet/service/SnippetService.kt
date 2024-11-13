@@ -39,12 +39,11 @@ class SnippetService
             principal: Principal,
             authorizationHeader: String,
         ): Snippet {
-
             val authorId = principal.name
             val snippet =
                 Snippet(
                     name = input.name,
-                    content = "", //Initially empty
+                    content = "", // Initially empty
                     language = input.language,
                     languageVersion = input.languageVersion,
                     authorId = authorId,
@@ -147,7 +146,11 @@ class SnippetService
 
         fun snippetExists(id: String): Boolean = !repository.findById(id).isEmpty
 
-        fun getSnippetContent(id: String): String = repository.findById(id).get().content
+        fun getSnippetContent(id: String): String {
+            return azuriteService.getSnippetContent(id)?.let {
+                    it.bufferedReader().use { reader -> reader.readText() }
+                } ?: "Content not available"
+        }
 
         fun getSnippets(
             principal: Principal,
@@ -161,10 +164,10 @@ class SnippetService
             // Convert the page to a list of SnippetDescriptor
             val snippets =
                 snippetsPage.content.map { snippet ->
-                    val snippetContent = azuriteService.getSnippetContent(snippet.content)?.let {
-                        it.bufferedReader().use { reader -> reader.readText() }
-                    } ?: "Content not available"
-
+                    val snippetContent =
+                        azuriteService.getSnippetContent(snippet.content)?.let {
+                            it.bufferedReader().use { reader -> reader.readText() }
+                        } ?: "Content not available"
 
                     SnippetDescriptor(
                         id = snippet.id,

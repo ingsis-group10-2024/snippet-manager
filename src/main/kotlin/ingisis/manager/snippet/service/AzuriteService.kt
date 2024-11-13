@@ -5,14 +5,13 @@ import com.azure.storage.blob.BlobContainerClient
 import com.azure.storage.blob.BlobServiceClient
 import com.azure.storage.blob.BlobServiceClientBuilder
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Service
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import org.springframework.stereotype.Service
 
 @Service
 class AzuriteService {
-
     @Value("\${azure.storage.connection-string}")
     private lateinit var connectionString: String
 
@@ -24,9 +23,9 @@ class AzuriteService {
         return blobServiceClient.getBlobContainerClient(containerName)
     }
 
-    fun getSnippetContent(snippetName: String): InputStream? {
+    fun getSnippetContent(snippetId: String): InputStream? {
         val containerClient = getContainerClient()
-        val blobClient: BlobClient = containerClient.getBlobClient(snippetName)
+        val blobClient: BlobClient = containerClient.getBlobClient(snippetId)
 
         return if (blobClient.exists()) {
             val outputStream = ByteArrayOutputStream()
@@ -37,7 +36,10 @@ class AzuriteService {
         }
     }
 
-    fun uploadContentToAzurite(snippetId: String, content: String): String {
+    fun uploadContentToAzurite(
+        snippetId: String,
+        content: String,
+    ): String {
         val containerClient = getContainerClient()
         val blobClient: BlobClient = containerClient.getBlobClient(snippetId)
 
