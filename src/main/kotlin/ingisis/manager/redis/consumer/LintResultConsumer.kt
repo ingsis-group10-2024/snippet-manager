@@ -1,9 +1,9 @@
 package ingisis.manager.redis.consumer
 
 import ingisis.manager.domains.snippet.model.enums.CompilationStatus
+import ingisis.manager.domains.snippet.service.SnippetService
 import ingisis.manager.redis.events.lint.LintResultEvent
 import ingisis.manager.redis.events.lint.LintResultStatus
-import ingisis.manager.snippet.service.SnippetService
 import org.austral.ingsis.redis.RedisStreamConsumer
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value

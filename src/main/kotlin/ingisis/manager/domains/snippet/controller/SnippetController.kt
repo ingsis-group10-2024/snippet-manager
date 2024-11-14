@@ -1,15 +1,15 @@
 package ingisis.manager.domains.snippet.controller
 
 import ingisis.manager.domains.snippet.exception.InvalidSnippetException
+import ingisis.manager.domains.snippet.exception.SnippetNotFoundException
 import ingisis.manager.domains.snippet.model.dto.SnippetRequest
 import ingisis.manager.domains.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.domains.snippet.model.dto.createSnippet.CreateSnippetInput
 import ingisis.manager.domains.snippet.model.dto.createSnippet.CreateSnippetResponse
+import ingisis.manager.domains.snippet.model.dto.rest.permission.PaginatedSnippetResponse
+import ingisis.manager.domains.snippet.model.dto.rest.permission.SnippetDescriptor
 import ingisis.manager.domains.snippet.model.dto.rest.runner.ValidationResponse
-import ingisis.manager.snippet.exception.SnippetNotFoundException
-import ingisis.manager.snippet.model.dto.rest.permission.PaginatedSnippetResponse
-import ingisis.manager.snippet.model.dto.rest.permission.SnippetDescriptor
-import ingisis.manager.snippet.service.SnippetService
+import ingisis.manager.domains.snippet.service.SnippetService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

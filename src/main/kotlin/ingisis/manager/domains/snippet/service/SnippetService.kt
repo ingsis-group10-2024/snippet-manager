@@ -1,18 +1,18 @@
 package ingisis.manager.domains.snippet.service
 
 import ingisis.manager.domains.snippet.exception.InvalidSnippetException
+import ingisis.manager.domains.snippet.exception.SnippetNotFoundException
 import ingisis.manager.domains.snippet.model.dto.SnippetRequest
 import ingisis.manager.domains.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.domains.snippet.model.dto.createSnippet.CreateSnippetInput
 import ingisis.manager.domains.snippet.model.dto.rest.permission.CreatePermission
+import ingisis.manager.domains.snippet.model.dto.rest.permission.PaginatedSnippetResponse
 import ingisis.manager.domains.snippet.model.dto.rest.permission.PermissionRequest
+import ingisis.manager.domains.snippet.model.dto.rest.permission.SnippetDescriptor
 import ingisis.manager.domains.snippet.model.dto.rest.runner.ValidationResponse
 import ingisis.manager.domains.snippet.model.enums.CompilationStatus
 import ingisis.manager.domains.snippet.persistance.entity.Snippet
-import ingisis.manager.snippet.exception.SnippetNotFoundException
-import ingisis.manager.snippet.model.dto.rest.permission.PaginatedSnippetResponse
-import ingisis.manager.snippet.model.dto.rest.permission.SnippetDescriptor
-import ingisis.manager.snippet.persistance.repository.SnippetRepository
+import ingisis.manager.domains.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpEntity
