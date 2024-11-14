@@ -1,4 +1,4 @@
-package ingisis.manager.security
+package ingisis.manager.auth
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
