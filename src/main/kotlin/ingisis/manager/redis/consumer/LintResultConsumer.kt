@@ -2,7 +2,7 @@ package ingisis.manager.redis.consumer
 
 import ingisis.manager.redis.events.lint.LintResultEvent
 import ingisis.manager.redis.events.lint.LintResultStatus
-import ingisis.manager.snippet.model.enums.CompilationStatus
+import ingisis.manager.domains.rule.snippet.model.enums.CompilationStatus
 import ingisis.manager.snippet.service.SnippetService
 import org.austral.ingsis.redis.RedisStreamConsumer
 import org.springframework.beans.factory.annotation.Autowired
@@ -57,10 +57,10 @@ class LintResultConsumer
                 .targetType(LintResultEvent::class.java) // setea tipo para deserializar registro
                 .build()
 
-        private fun toCompilationStatus(status: LintResultStatus): CompilationStatus =
+        private fun toCompilationStatus(status: LintResultStatus): ingisis.manager.domains.rule.snippet.model.enums.CompilationStatus =
             when (status) {
-                LintResultStatus.PASSED -> CompilationStatus.COMPLIANT
-                LintResultStatus.PENDING -> CompilationStatus.PENDING
-                LintResultStatus.FAILED -> CompilationStatus.NON_COMPLIANT
+                LintResultStatus.PASSED -> ingisis.manager.domains.rule.snippet.model.enums.CompilationStatus.COMPLIANT
+                LintResultStatus.PENDING -> ingisis.manager.domains.rule.snippet.model.enums.CompilationStatus.PENDING
+                LintResultStatus.FAILED -> ingisis.manager.domains.rule.snippet.model.enums.CompilationStatus.NON_COMPLIANT
             }
     }
