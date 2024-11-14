@@ -1,8 +1,8 @@
-package ingisis.manager.domains.rule.snippet.model.dto.createSnippet
+package ingisis.manager.domains.snippet.model.dto
 
 import org.jetbrains.annotations.NotNull
 
-data class CreateSnippetInput(
+data class SnippetRequest(
     @NotNull
     val name: String,
     @NotNull
@@ -10,6 +10,4 @@ data class CreateSnippetInput(
     @NotNull
     val language: String,
     val languageVersion: String,
-    @NotNull
-    val extension: String,
 )

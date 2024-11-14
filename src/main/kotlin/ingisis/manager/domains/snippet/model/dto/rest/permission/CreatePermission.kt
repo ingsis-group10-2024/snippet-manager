@@ -1,4 +1,4 @@
-package ingisis.manager.domains.rule.snippet.model.dto.rest.permission
+package ingisis.manager.domains.snippet.model.dto.rest.permission
 
 data class CreatePermission(
     val snippetId: String,

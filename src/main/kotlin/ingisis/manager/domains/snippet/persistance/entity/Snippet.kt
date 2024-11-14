@@ -1,6 +1,6 @@
-package ingisis.manager.domains.rule.snippet.persistance.entity
+package ingisis.manager.domains.snippet.persistance.entity
 
-import ingisis.manager.domains.rule.snippet.model.enums.CompilationStatus
+import ingisis.manager.domains.snippet.model.enums.CompilationStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -24,7 +24,7 @@ data class Snippet(
     @Column(name = "author-id", nullable = false)
     val authorId: String,
     @Column(name = "compilation-status", nullable = false)
-    var compilationStatus: ingisis.manager.domains.rule.snippet.model.enums.CompilationStatus = ingisis.manager.domains.rule.snippet.model.enums.CompilationStatus.PENDING,
+    var compilationStatus: CompilationStatus = CompilationStatus.PENDING,
     @CreationTimestamp
     val createdAt: LocalDateTime = LocalDateTime.now(),
     @UpdateTimestamp

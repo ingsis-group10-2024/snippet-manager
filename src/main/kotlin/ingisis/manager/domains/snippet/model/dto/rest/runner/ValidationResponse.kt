@@ -1,4 +1,4 @@
-package ingisis.manager.domains.rule.snippet.model.dto.rest.runner
+package ingisis.manager.domains.snippet.model.dto.rest.runner
 
 import sca.StaticCodeAnalyzerError
 

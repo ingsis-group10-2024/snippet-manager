@@ -1,14 +1,14 @@
-package ingisis.manager.domains.rule.snippet.controller
+package ingisis.manager.domains.snippet.controller
 
-import ingisis.manager.domains.rule.snippet.exception.InvalidSnippetException
+import ingisis.manager.domains.snippet.exception.InvalidSnippetException
+import ingisis.manager.domains.snippet.model.dto.SnippetRequest
+import ingisis.manager.domains.snippet.model.dto.UpdateSnippetInput
+import ingisis.manager.domains.snippet.model.dto.createSnippet.CreateSnippetInput
+import ingisis.manager.domains.snippet.model.dto.createSnippet.CreateSnippetResponse
+import ingisis.manager.domains.snippet.model.dto.rest.runner.ValidationResponse
 import ingisis.manager.snippet.exception.SnippetNotFoundException
-import ingisis.manager.domains.rule.snippet.model.dto.SnippetRequest
-import ingisis.manager.domains.rule.snippet.model.dto.UpdateSnippetInput
-import ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetInput
-import ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetResponse
 import ingisis.manager.snippet.model.dto.rest.permission.PaginatedSnippetResponse
 import ingisis.manager.snippet.model.dto.rest.permission.SnippetDescriptor
-import ingisis.manager.domains.rule.snippet.model.dto.rest.runner.ValidationResponse
 import ingisis.manager.snippet.service.SnippetService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -35,10 +35,10 @@ class SnippetController(
 ) {
     @PostMapping("/validate")
     fun validateSnippet(
-        @RequestBody request: ingisis.manager.domains.rule.snippet.model.dto.SnippetRequest,
+        @RequestBody request: SnippetRequest,
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
-    ): ResponseEntity<ingisis.manager.domains.rule.snippet.model.dto.rest.runner.ValidationResponse> {
+    ): ResponseEntity<ValidationResponse> {
         val validationResponse =
             snippetService.validateSnippet(
                 name = request.name,
@@ -52,10 +52,10 @@ class SnippetController(
 
     @PostMapping("/process")
     fun processSnippet(
-        @RequestBody request: ingisis.manager.domains.rule.snippet.model.dto.SnippetRequest,
+        @RequestBody request: SnippetRequest,
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
-    ): ResponseEntity<ingisis.manager.domains.rule.snippet.model.dto.rest.runner.ValidationResponse> {
+    ): ResponseEntity<ValidationResponse> {
         val response = snippetService.validateSnippet(request.name, request.content, request.language, request.languageVersion, authorizationHeader)
         return ResponseEntity.ok(response)
     }
@@ -63,19 +63,23 @@ class SnippetController(
     @PreAuthorize("hasAuthority('SCOPE_create:snippet')")
     @PostMapping()
     fun createSnippet(
-        @RequestBody input: ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetInput,
+        @RequestBody input: CreateSnippetInput,
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
-    ): ResponseEntity<ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetResponse> =
+    ): ResponseEntity<CreateSnippetResponse> =
         try {
             val snippet = snippetService.createSnippet(input, principal, authorizationHeader)
 
             // If no errors, returns the snippet ID
-            ResponseEntity.ok(ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetResponse("Successfully created snippet: " + snippet.id))
-        } catch (e: ingisis.manager.domains.rule.snippet.exception.InvalidSnippetException) {
+            ResponseEntity.ok(
+                CreateSnippetResponse(
+                    "Successfully created snippet: " + snippet.id,
+                ),
+            )
+        } catch (e: InvalidSnippetException) {
             // If there are errors, returns the error message
             ResponseEntity.badRequest().body(
-                ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetResponse(
+                CreateSnippetResponse(
                     message = "Error creating snippet",
                     errors = e.errors,
                 ),
@@ -83,7 +87,7 @@ class SnippetController(
         } catch (e: Exception) {
             val errorMessage = e.message ?: "Internal server error"
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetResponse(
+                CreateSnippetResponse(
                     message = "Internal server error",
                     errors = listOf(StaticCodeAnalyzerError(message = errorMessage)),
                 ),
@@ -93,22 +97,26 @@ class SnippetController(
     @PreAuthorize("hasAuthority('SCOPE_create:snippet')")
     @PostMapping("/upload")
     fun uploadSnippet(
-        @ModelAttribute input: ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetInput,
+        @ModelAttribute input: CreateSnippetInput,
         @RequestParam("file") file: MultipartFile,
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
-    ): ResponseEntity<ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetResponse> {
+    ): ResponseEntity<CreateSnippetResponse> {
         if (file.isEmpty) {
             return ResponseEntity.badRequest().body(null)
         }
         return try {
             val snippet = snippetService.processFileAndCreateSnippet(file, input, principal, authorizationHeader)
             // If no errors, returns the snippet ID
-            ResponseEntity.ok(ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetResponse("Successfully created snippet: " + snippet.id))
-        } catch (e: ingisis.manager.domains.rule.snippet.exception.InvalidSnippetException) {
+            ResponseEntity.ok(
+                CreateSnippetResponse(
+                    "Successfully created snippet: " + snippet.id,
+                ),
+            )
+        } catch (e: InvalidSnippetException) {
             // If there are errors, returns the error message
             ResponseEntity.badRequest().body(
-                ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetResponse(
+                CreateSnippetResponse(
                     message = "Error creating snippet",
                     errors = e.errors,
                 ),
@@ -116,7 +124,7 @@ class SnippetController(
         } catch (e: Exception) {
             val errorMessage = e.message ?: "Internal server error"
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetResponse(
+                CreateSnippetResponse(
                     message = "Internal server error",
                     errors = listOf(StaticCodeAnalyzerError(message = errorMessage)),
                 ),
@@ -128,7 +136,7 @@ class SnippetController(
     @PutMapping("/update/{id}")
     fun updateSnippet(
         @PathVariable id: String,
-        @ModelAttribute input: ingisis.manager.domains.rule.snippet.model.dto.UpdateSnippetInput,
+        @ModelAttribute input: UpdateSnippetInput,
         @RequestParam("file") file: MultipartFile,
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
@@ -140,7 +148,7 @@ class SnippetController(
         return try {
             val updatedSnippet = snippetService.processFileAndUpdateSnippet(id, input, file, principal, authorizationHeader)
             ResponseEntity.ok("Snippet updated: ${updatedSnippet.id}")
-        } catch (e: ingisis.manager.domains.rule.snippet.exception.InvalidSnippetException) {
+        } catch (e: InvalidSnippetException) {
             ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.message)
         } catch (e: SnippetNotFoundException) {
             ResponseEntity.status(HttpStatus.NOT_FOUND).body("Snippet not found")

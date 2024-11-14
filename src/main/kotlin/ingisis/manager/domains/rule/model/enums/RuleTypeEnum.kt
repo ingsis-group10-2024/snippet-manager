@@ -4,4 +4,3 @@ enum class RuleTypeEnum {
     LINT,
     FORMAT,
 }
-

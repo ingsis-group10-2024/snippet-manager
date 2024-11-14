@@ -1,4 +1,4 @@
-package ingisis.manager.domains.rule.snippet.model.enums
+package ingisis.manager.domains.snippet.model.enums
 
 enum class CompilationStatus {
     COMPLIANT,

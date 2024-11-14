@@ -1,17 +1,17 @@
-package ingisis.manager.domains.rule.snippet.service
+package ingisis.manager.domains.snippet.service
 
-import ingisis.manager.domains.rule.snippet.exception.InvalidSnippetException
+import ingisis.manager.domains.snippet.exception.InvalidSnippetException
+import ingisis.manager.domains.snippet.model.dto.SnippetRequest
+import ingisis.manager.domains.snippet.model.dto.UpdateSnippetInput
+import ingisis.manager.domains.snippet.model.dto.createSnippet.CreateSnippetInput
+import ingisis.manager.domains.snippet.model.dto.rest.permission.CreatePermission
+import ingisis.manager.domains.snippet.model.dto.rest.permission.PermissionRequest
+import ingisis.manager.domains.snippet.model.dto.rest.runner.ValidationResponse
+import ingisis.manager.domains.snippet.model.enums.CompilationStatus
+import ingisis.manager.domains.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.exception.SnippetNotFoundException
-import ingisis.manager.domains.rule.snippet.model.dto.SnippetRequest
-import ingisis.manager.domains.rule.snippet.model.dto.UpdateSnippetInput
-import ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetInput
-import ingisis.manager.domains.rule.snippet.model.dto.rest.permission.CreatePermission
 import ingisis.manager.snippet.model.dto.rest.permission.PaginatedSnippetResponse
-import ingisis.manager.domains.rule.snippet.model.dto.rest.permission.PermissionRequest
 import ingisis.manager.snippet.model.dto.rest.permission.SnippetDescriptor
-import ingisis.manager.domains.rule.snippet.model.dto.rest.runner.ValidationResponse
-import ingisis.manager.domains.rule.snippet.model.enums.CompilationStatus
-import ingisis.manager.domains.rule.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
@@ -31,19 +31,19 @@ class SnippetService
         private val repository: SnippetRepository,
         private val restTemplate: RestTemplate,
     ) {
-        fun getSnippetById(id: String): ingisis.manager.domains.rule.snippet.persistance.entity.Snippet =
+        fun getSnippetById(id: String): Snippet =
             repository.findById(id).orElseThrow {
                 SnippetNotFoundException("Snippet with ID $id not found")
             }
 
         fun createSnippet(
-            input: ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetInput,
+            input: CreateSnippetInput,
             principal: Principal,
             authorizationHeader: String,
-        ): ingisis.manager.domains.rule.snippet.persistance.entity.Snippet {
+        ): Snippet {
             val authorId = principal.name
             val snippet =
-                ingisis.manager.domains.rule.snippet.persistance.entity.Snippet(
+                Snippet(
                     name = input.name,
                     content = input.content,
                     language = input.language,
@@ -59,7 +59,7 @@ class SnippetService
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
                 val errors = lintResult.errors ?: emptyList() // Get the errors from the response
-                throw ingisis.manager.domains.rule.snippet.exception.InvalidSnippetException(errors)
+                throw InvalidSnippetException(errors)
             }
 
             val savedSnippet = repository.save(snippet)
@@ -75,7 +75,7 @@ class SnippetService
             val url = "http://snippet-permission:8080/permission"
 
             val request =
-                ingisis.manager.domains.rule.snippet.model.dto.rest.permission.CreatePermission(
+                CreatePermission(
                     userId = authorId,
                     snippetId = snippetId,
                     permissionType = "OWNER",
@@ -94,24 +94,25 @@ class SnippetService
             language: String,
             languageVersion: String,
             authorizationHeader: String,
-        ): ingisis.manager.domains.rule.snippet.model.dto.rest.runner.ValidationResponse {
-            val snippetRequest = ingisis.manager.domains.rule.snippet.model.dto.SnippetRequest(
-                name = name,
-                content = content,
-                languageVersion = languageVersion,
-                language = language
-            )
+        ): ValidationResponse {
+            val snippetRequest =
+                SnippetRequest(
+                    name = name,
+                    content = content,
+                    languageVersion = languageVersion,
+                    language = language,
+                )
 
             val headers: MultiValueMap<String, String> = LinkedMultiValueMap()
             headers.add("Authorization", authorizationHeader)
             headers.add("Content-Type", "application/json")
             val requestEntity = HttpEntity(snippetRequest, headers)
 
-            val response: ResponseEntity<ingisis.manager.domains.rule.snippet.model.dto.rest.runner.ValidationResponse> =
+            val response: ResponseEntity<ValidationResponse> =
                 restTemplate.postForEntity(
                     "http://snippet-runner:8080/runner/lint",
                     requestEntity,
-                    ingisis.manager.domains.rule.snippet.model.dto.rest.runner.ValidationResponse::class.java,
+                    ValidationResponse::class.java,
                 )
             return response.body ?: throw RuntimeException("Error obtaining response from runner service")
         }
@@ -126,10 +127,11 @@ class SnippetService
             headers.add("Authorization", authorizationHeader)
             headers.add("Content-Type", "application/json")
             val url = "http://snippet-permission:8080/permission/permissions"
-            val permissionRequest = ingisis.manager.domains.rule.snippet.model.dto.rest.permission.PermissionRequest(
-                userId = userId,
-                snippetId = snippetId
-            )
+            val permissionRequest =
+                PermissionRequest(
+                    userId = userId,
+                    snippetId = snippetId,
+                )
 
             val requestEntity = HttpEntity(permissionRequest, headers)
 
@@ -152,10 +154,10 @@ class SnippetService
 
         fun processFileAndCreateSnippet(
             file: MultipartFile,
-            input: ingisis.manager.domains.rule.snippet.model.dto.createSnippet.CreateSnippetInput,
+            input: CreateSnippetInput,
             principal: Principal,
             authorizationHeader: String,
-        ): ingisis.manager.domains.rule.snippet.persistance.entity.Snippet {
+        ): Snippet {
             val content = file.inputStream.bufferedReader().use { it.readText() }
 
             val snippetData = input.copy(content = content)
@@ -165,11 +167,11 @@ class SnippetService
 
         fun processFileAndUpdateSnippet(
             id: String,
-            input: ingisis.manager.domains.rule.snippet.model.dto.UpdateSnippetInput,
+            input: UpdateSnippetInput,
             file: MultipartFile?,
             principal: Principal,
             authorizationHeader: String,
-        ): ingisis.manager.domains.rule.snippet.persistance.entity.Snippet {
+        ): Snippet {
             val snippet = getSnippetById(id)
 
             val updatedName = input.name ?: snippet.name
@@ -189,7 +191,7 @@ class SnippetService
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
                 val errors = lintResult.errors ?: emptyList() // Get the errors from the response
-                throw ingisis.manager.domains.rule.snippet.exception.InvalidSnippetException(errors)
+                throw InvalidSnippetException(errors)
             }
 
             return repository.save(updatedSnippet)
@@ -249,7 +251,7 @@ class SnippetService
 
         fun updateSnippetCompilationStatus(
             snippetId: String,
-            status: ingisis.manager.domains.rule.snippet.model.enums.CompilationStatus,
+            status: CompilationStatus,
         ) {
             println("Update snippet compilation status with status: $status")
             val snippet = this.repository.findById(snippetId)

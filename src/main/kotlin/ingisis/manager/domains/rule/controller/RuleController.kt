@@ -16,9 +16,9 @@ import java.security.Principal
 
 @RestController
 @RequestMapping("/rules")
-class RuleController (private val ruleService: RuleService){
-
-
+class RuleController(
+    private val ruleService: RuleService,
+) {
     @PostMapping("/format")
     fun createOrUpdateFormatRules(
         @RequestBody newRules: List<RuleDTO>,
@@ -80,5 +80,3 @@ class RuleController (private val ruleService: RuleService){
         return ResponseEntity.ok(rules)
     }
 }
-
-

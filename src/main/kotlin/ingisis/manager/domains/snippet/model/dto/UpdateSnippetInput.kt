@@ -1,4 +1,4 @@
-package ingisis.manager.domains.rule.snippet.model.dto
+package ingisis.manager.domains.snippet.model.dto
 
 import org.springframework.web.multipart.MultipartFile
 

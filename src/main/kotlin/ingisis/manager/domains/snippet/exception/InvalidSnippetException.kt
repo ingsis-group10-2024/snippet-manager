@@ -1,4 +1,4 @@
-package ingisis.manager.domains.rule.snippet.exception
+package ingisis.manager.domains.snippet.exception
 
 import sca.StaticCodeAnalyzerError
 

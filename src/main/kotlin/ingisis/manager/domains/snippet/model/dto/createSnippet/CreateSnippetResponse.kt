@@ -1,4 +1,4 @@
-package ingisis.manager.domains.rule.snippet.model.dto.createSnippet
+package ingisis.manager.domains.snippet.model.dto.createSnippet
 
 import sca.StaticCodeAnalyzerError
 
