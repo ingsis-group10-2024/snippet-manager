@@ -1,6 +1,6 @@
 package ingisis.manager.snippet.persistance.entity
 
-import ingisis.manager.snippet.model.enums.CompilationState
+import ingisis.manager.snippet.model.enums.CompilationStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -23,8 +23,8 @@ data class Snippet(
     var content: String, // debería pasar a ser un id para guardar el contenido en un bucket
     @Column(name = "author-id", nullable = false)
     val authorId: String,
-    @Column(name = "compilation-state", nullable = false)
-    var compilationState: CompilationState = CompilationState.PENDING,
+    @Column(name = "compilation-status", nullable = false)
+    var compilationStatus: CompilationStatus = CompilationStatus.PENDING,
     @CreationTimestamp
     val createdAt: LocalDateTime = LocalDateTime.now(),
     @UpdateTimestamp

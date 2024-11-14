@@ -1,13 +1,11 @@
 package ingisis.manager.redis.events.lint
 
-import java.util.UUID
-
 data class LintResultEvent(
-    val snippetId: UUID,
-    val status: ResultStatus,
+    val snippetId: String,
+    val status: LintResultStatus,
 )
 
-enum class ResultStatus {
+enum class LintResultStatus {
     PASSED,
     PENDING,
     FAILED,

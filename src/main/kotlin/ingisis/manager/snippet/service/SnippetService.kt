@@ -10,6 +10,7 @@ import ingisis.manager.snippet.model.dto.rest.permission.PaginatedSnippetRespons
 import ingisis.manager.snippet.model.dto.rest.permission.PermissionRequest
 import ingisis.manager.snippet.model.dto.rest.permission.SnippetDescriptor
 import ingisis.manager.snippet.model.dto.rest.runner.ValidationResponse
+import ingisis.manager.snippet.model.enums.CompilationStatus
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
@@ -236,5 +237,19 @@ class SnippetService
                 totalPages = (combinedSnippets.size / pageSize) + if (combinedSnippets.size % pageSize == 0) 0 else 1,
                 totalElements = combinedSnippets.size.toLong(),
             )
+        }
+
+        fun updateSnippetCompilationStatus(
+            snippetId: String,
+            status: CompilationStatus,
+        ) {
+            println("Update snippet compilation status with status: $status")
+            val snippet = this.repository.findById(snippetId)
+            if (snippet.isPresent) {
+                snippet.get().compilationStatus = status
+                this.repository.save(snippet.get())
+            } else {
+                throw SnippetNotFoundException("Snippet with ID $snippetId not found")
+            }
         }
     }
