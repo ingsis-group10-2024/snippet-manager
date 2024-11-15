@@ -44,8 +44,8 @@ repositories {
 
 dependencies {
 
-    implementation 'printscript:sca:2.1.10-SNAPSHOT'
-    implementation 'printscript:common:2.1.10-SNAPSHOT'
+    implementation 'printscript:sca:2.1.10'
+    implementation 'printscript:common:2.1.10'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
