@@ -9,17 +9,16 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import java.util.UUID
 
-
 @Entity
 @Table(name = "linter_rules")
-data class LinterRules(
+data class LinterRule(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: String = UUID.randomUUID().toString(),
     @Column(name = "case_convention", nullable = false)
-    val caseConvention: CaseConvention = CaseConvention.CAMEL_CASE,
+    var caseConvention: CaseConvention = CaseConvention.CAMEL_CASE,
     @Column(name = "print_expressions_enabled", nullable = false)
-    val printExpressionsEnabled: Boolean = false,
+    var printExpressionsEnabled: Boolean = false,
     @Column(name = "userId", nullable = false)
     val userId: String,
 )

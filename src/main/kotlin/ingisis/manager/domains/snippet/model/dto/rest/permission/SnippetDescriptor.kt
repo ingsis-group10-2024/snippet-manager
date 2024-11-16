@@ -6,7 +6,7 @@ import java.time.LocalDateTime
 data class SnippetDescriptor(
     val id: String,
     val name: String,
-    val authorId: String,
+    val userId: String,
     val createdAt: LocalDateTime,
     val content: String,
     val language: String,

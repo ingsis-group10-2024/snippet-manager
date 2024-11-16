@@ -231,7 +231,7 @@ class SnippetController(
             SnippetDescriptor(
                 id = snippet.id,
                 name = snippet.name,
-                authorId = snippet.authorId,
+                userId = snippet.userId,
                 createdAt = snippet.createdAt,
                 content = snippet.content,
                 language = snippet.language,

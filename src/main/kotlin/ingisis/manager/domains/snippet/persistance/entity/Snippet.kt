@@ -21,8 +21,8 @@ data class Snippet(
     var name: String,
     @Column(name = "content", nullable = false)
     var content: String, // debería pasar a ser un id para guardar el contenido en un bucket
-    @Column(name = "author-id", nullable = false)
-    val authorId: String,
+    @Column(name = "user-id", nullable = false)
+    val userId: String,
     @Column(name = "compilation-status", nullable = false)
     var compilationStatus: CompilationStatus = CompilationStatus.PENDING,
     @CreationTimestamp

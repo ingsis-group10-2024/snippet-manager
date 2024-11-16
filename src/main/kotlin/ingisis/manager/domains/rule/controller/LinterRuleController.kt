@@ -1,6 +1,5 @@
-import ingisis.manager.domains.rule.model.dto.LinterRulesDTO
-import ingisis.manager.domains.rule.model.dto.RuleDTO
-import ingisis.manager.domains.rule.service.RuleService
+import ingisis.manager.domains.rule.model.dto.LinterRuleDTO
+import ingisis.manager.domains.rule.service.LinterRuleService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CrossOrigin
@@ -12,16 +11,16 @@ import java.security.Principal
 
 @RestController
 @CrossOrigin("*")
-class LinterRulesController(
-    @Autowired private val ruleService: RuleService,
+class LinterRuleController(
+    @Autowired private val linterRuleService: LinterRuleService,
 ) {
     @GetMapping("/rule/linter")
-    suspend fun getLinterRulesByUserId(principal: Principal): ResponseEntity<List<RuleDTO>> =
-        ResponseEntity.ok(ruleService.getLinterRulesByUserId(principal.name))
+    suspend fun getLinterRuleByUserId(principal: Principal): ResponseEntity<LinterRuleDTO> =
+        ResponseEntity.ok(linterRuleService.getLinterRulesByUserId(principal.name))
 
     @PutMapping("/rule/linter")
     suspend fun updateLinterRules(
-        @RequestBody linterRules: LinterRulesDTO,
+        @RequestBody linterRules: LinterRuleDTO,
         principal: Principal,
-    ): ResponseEntity<LinterRulesDTO> = ResponseEntity.ok(ruleService.updateLinterRules(linterRules, principal.name))
+    ): ResponseEntity<LinterRuleDTO> = ResponseEntity.ok(linterRuleService.updateLinterRules(linterRules, principal.name))
 }

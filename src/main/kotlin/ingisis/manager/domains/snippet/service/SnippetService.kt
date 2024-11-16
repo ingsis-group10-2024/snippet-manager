@@ -2,6 +2,7 @@ package ingisis.manager.domains.snippet.service
 
 import ingisis.manager.domains.snippet.exception.InvalidSnippetException
 import ingisis.manager.domains.snippet.exception.SnippetNotFoundException
+import ingisis.manager.domains.snippet.model.dto.SnippetDto
 import ingisis.manager.domains.snippet.model.dto.SnippetRequest
 import ingisis.manager.domains.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.domains.snippet.model.dto.createSnippet.CreateSnippetInput
@@ -36,22 +37,26 @@ class SnippetService
                 SnippetNotFoundException("Snippet with ID $id not found")
             }
 
+        fun getSnippetByUserId(userId: String): Snippet = repository.findByUserId(userId)
+
+        fun getSnippetsByUserId(userId: String): List<SnippetDto> = this.repository.findSnippetsByUserId(userId).map { SnippetDto(it) } ?: emptyList()
+
         fun createSnippet(
             input: CreateSnippetInput,
             principal: Principal,
             authorizationHeader: String,
         ): Snippet {
-            val authorId = principal.name
+            val userId = principal.name
             val snippet =
                 Snippet(
                     name = input.name,
                     content = input.content,
                     language = input.language,
                     languageVersion = input.languageVersion,
-                    authorId = authorId,
+                    userId = userId,
                     extension = input.extension,
                 )
-            println("AuthorID: $authorId")
+            println("UserId: $userId")
             println("Creating snippet: $snippet")
 
             val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion, authorizationHeader)
@@ -63,12 +68,12 @@ class SnippetService
             }
 
             val savedSnippet = repository.save(snippet)
-            giveOwnerPermissionToSnippet(authorId = savedSnippet.authorId, snippetId = savedSnippet.id, authorizationHeader = authorizationHeader)
+            giveOwnerPermissionToSnippet(userId = savedSnippet.userId, snippetId = savedSnippet.id, authorizationHeader = authorizationHeader)
             return savedSnippet
         }
 
         private fun giveOwnerPermissionToSnippet(
-            authorId: String,
+            userId: String,
             snippetId: String,
             authorizationHeader: String,
         ) {
@@ -76,7 +81,7 @@ class SnippetService
 
             val request =
                 CreatePermission(
-                    userId = authorId,
+                    userId = userId,
                     snippetId = snippetId,
                     permissionType = "OWNER",
                 )
@@ -208,7 +213,7 @@ class SnippetService
             authorizationHeader: String,
         ): PaginatedSnippetResponse {
             val pageable = PageRequest.of(page, pageSize)
-            val userSnippetsPage = repository.findByAuthorId(principal.name, pageable)
+            val userSnippetsPage = repository.findByUserIdAndPageable(principal.name, pageable)
 
             // Filter snippets that the user has permission to read
             val sharedSnippetsPage =
@@ -232,7 +237,7 @@ class SnippetService
                     SnippetDescriptor(
                         id = snippet.id,
                         name = snippet.name,
-                        authorId = snippet.authorId,
+                        userId = snippet.userId,
                         createdAt = snippet.createdAt,
                         content = snippet.content,
                         language = snippet.language,
