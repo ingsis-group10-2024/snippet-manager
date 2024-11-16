@@ -57,6 +57,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.3'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.okta.spring:okta-spring-boot-starter:3.0.5'

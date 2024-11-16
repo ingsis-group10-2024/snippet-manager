@@ -5,6 +5,7 @@ import ingisis.manager.domains.rule.exception.UnauthorizedAccessException
 import ingisis.manager.domains.rule.model.dto.RuleDTO
 import ingisis.manager.domains.rule.model.enums.RuleTypeEnum
 import ingisis.manager.domains.rule.persistance.entity.Rule
+import ingisis.manager.domains.rule.persistance.repository.LinterRulesRepository
 import ingisis.manager.domains.rule.persistance.repository.RuleRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service
 class RuleService
     @Autowired
     constructor(
+        private val linterRulesRepository: LinterRulesRepository,
         private val ruleRepository: RuleRepository,
     ) {
         fun createOrUpdateRules(
@@ -73,5 +75,16 @@ class RuleService
         fun getLintingRules(userId: String): List<RuleDTO> {
             val lintingRules = ruleRepository.findByUserIdAndType(userId, RuleTypeEnum.LINT)
             return lintingRules.map { RuleDTO(it) }
+        }
+
+        fun getLinterRulesByUserId(userId: String): List<RuleDTO> {
+            val lintingRules = linterRulesRepository.findByUserId(userId)
+            return lintingRules.map { RuleDTO(it) }
+        }
+
+        fun updateLinterRules(
+            linterRules: LinterRulesDTO,
+            name: String?,
+        ): LinterRulesDTO? {
         }
     }

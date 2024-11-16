@@ -36,7 +36,7 @@ class LintResultConsumer
          * @param record El registro del evento recibido, que contiene el ID del fragmento
          *               y el estado del resultado del lint.
          */
-        override fun onMessage(record: ObjectRecord<String, LintResultEvent>) {
+        public override fun onMessage(record: ObjectRecord<String, LintResultEvent>) {
             println(
                 "Received event: " +
                     "LintResultEvent(" +

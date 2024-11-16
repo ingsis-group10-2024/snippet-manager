@@ -1,6 +1,6 @@
 package ingisis.manager.redis.events.rules
 
-data class LinterRules(
+data class LintRulesConfig(
     val caseConvention: CaseConvention,
     val printExpressionsEnabled: Boolean,
     // alguna mas?
