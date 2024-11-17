@@ -56,7 +56,14 @@ class SnippetController(
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
     ): ResponseEntity<ValidationResponse> {
-        val response = snippetService.validateSnippet(request.name, request.content, request.language, request.languageVersion, authorizationHeader)
+        val response =
+            snippetService.validateSnippet(
+                request.name,
+                request.content,
+                request.language,
+                request.languageVersion,
+                authorizationHeader,
+            )
         return ResponseEntity.ok(response)
     }
 

@@ -58,7 +58,7 @@ class SnippetService
             val blobUrl = azuriteService.uploadContentToAzurite(snippet.id, input.content)
             snippet.content = blobUrl
 
-            val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion, authorizationHeader)
+            val lintResult = validateSnippet(snippet.name, input.content, snippet.language, snippet.languageVersion, authorizationHeader)
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
@@ -67,7 +67,11 @@ class SnippetService
             }
 
             val savedSnippet = repository.save(snippet)
-            giveOwnerPermissionToSnippet(authorId = savedSnippet.authorId, snippetId = savedSnippet.id, authorizationHeader = authorizationHeader)
+            giveOwnerPermissionToSnippet(
+                authorId = savedSnippet.authorId,
+                snippetId = savedSnippet.id,
+                authorizationHeader = authorizationHeader,
+            )
             return savedSnippet
         }
 

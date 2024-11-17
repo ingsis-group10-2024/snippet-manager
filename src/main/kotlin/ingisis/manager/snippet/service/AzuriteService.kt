@@ -18,8 +18,19 @@ class AzuriteService {
     @Value("\${azure.storage.container-name}")
     private lateinit var containerName: String
 
+    private fun getBlobServiceClient(): BlobServiceClient = BlobServiceClientBuilder().connectionString(connectionString).buildClient()
+
+    // Check if the container exists, if not, create a new one
     private fun getContainerClient(): BlobContainerClient {
-        val blobServiceClient: BlobServiceClient = BlobServiceClientBuilder().connectionString(connectionString).buildClient()
+        val blobServiceClient = getBlobServiceClient()
+
+        val containerClient: BlobContainerClient = blobServiceClient.getBlobContainerClient(containerName)
+
+        if (!containerClient.exists()) {
+            println("Container '$containerName' does not exist. Creating a new one.")
+            blobServiceClient.createBlobContainer(containerName)
+        }
+
         return blobServiceClient.getBlobContainerClient(containerName)
     }
 
