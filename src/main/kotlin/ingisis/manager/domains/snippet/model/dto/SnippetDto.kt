@@ -5,14 +5,20 @@ import ingisis.manager.domains.snippet.persistance.entity.Snippet
 import java.time.LocalDateTime
 
 class SnippetDto(
-    snippet: Snippet,
+    val id: String,
+    val userId: String,
+    val name: String,
+    val content: String,
+    val compilationStatus: CompilationStatus,
+    val createdAt: LocalDateTime,
 ) {
-    val id: String = snippet.id
-    val userId: String = snippet.userId
-    val name: String = snippet.name
-    val content: String = snippet.content
-    val compilationStatus: CompilationStatus = snippet.compilationStatus
-
-    // var tests: List<CreateTestDTO>? = null
-    var createdAt: LocalDateTime = snippet.createdAt
+    // Si necesitas inicializar con un objeto Snippet, puedes hacerlo de esta manera:
+    constructor(snippet: Snippet) : this(
+        snippet.id,
+        snippet.userId,
+        snippet.name,
+        snippet.content,
+        snippet.compilationStatus,
+        snippet.createdAt,
+    )
 }

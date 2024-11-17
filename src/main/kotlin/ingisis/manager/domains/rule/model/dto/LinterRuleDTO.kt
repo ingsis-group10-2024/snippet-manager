@@ -4,14 +4,14 @@ import ingisis.manager.domains.rule.persistance.entity.LinterRule
 import ingisis.manager.redis.events.rules.CaseConvention
 
 class LinterRuleDTO {
+    var userId: String? = null
     var caseConvention: CaseConvention? = null
     var printExpressionsEnabled: Boolean? = false
-    var userId: String? = null
 
     constructor(
+        userId: String?,
         caseConvention: CaseConvention?,
         printExpressionsEnabled: Boolean?,
-        userId: String?,
     ) {
         this.caseConvention = caseConvention
         this.printExpressionsEnabled = printExpressionsEnabled
