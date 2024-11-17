@@ -56,7 +56,14 @@ class SnippetController(
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
     ): ResponseEntity<ValidationResponse> {
-        val response = snippetService.validateSnippet(request.name, request.content, request.language, request.languageVersion, authorizationHeader)
+        val response =
+            snippetService.validateSnippet(
+                request.name,
+                request.content,
+                request.language,
+                request.languageVersion,
+                authorizationHeader,
+            )
         return ResponseEntity.ok(response)
     }
 
@@ -146,26 +153,6 @@ class SnippetController(
             ResponseEntity.status(HttpStatus.NOT_FOUND).body("Snippet not found")
         }
     }
-
-    //    @GetMapping("/{id}/validate")
-    //    fun validateSnippet(
-    //        @PathVariable id: String,
-    //        @RequestParam version: String,
-    //    ): ResponseEntity<SnippetValidationResponse> =
-    //        try {
-    //            val snippetValidationResponse = service.validateSnippet(id, version)
-    //            ResponseEntity.ok(snippetValidationResponse)
-    //        } catch (e: SnippetNotFoundException) {
-    //            ResponseEntity.status(HttpStatus.NOT_FOUND).body(null)
-    //        } catch (e: IllegalArgumentException) {
-    //            ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null)
-    //        }
-
-//    @GetMapping("/permissions")
-//    fun getPermissions(): ResponseEntity<List<String>> = ResponseEntity.ok(snippetService.getSnippetPermissionByUserId("1", "1"))
-
-    @PostMapping("/prueba")
-    fun prueba(): String = "Hola"
 
     @GetMapping("/id")
     fun getUserId(principal: Principal): ResponseEntity<String> = ResponseEntity.ok(principal.name)

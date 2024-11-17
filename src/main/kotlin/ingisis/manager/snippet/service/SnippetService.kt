@@ -29,6 +29,7 @@ class SnippetService
     constructor(
         private val repository: SnippetRepository,
         private val restTemplate: RestTemplate,
+        private val azuriteService: AzuriteService,
     ) {
         fun getSnippetById(id: String): Snippet =
             repository.findById(id).orElseThrow {
@@ -44,7 +45,7 @@ class SnippetService
             val snippet =
                 Snippet(
                     name = input.name,
-                    content = input.content,
+                    content = "", // Initially empty
                     language = input.language,
                     languageVersion = input.languageVersion,
                     authorId = authorId,
@@ -52,8 +53,12 @@ class SnippetService
                 )
             println("AuthorID: $authorId")
             println("Creating snippet: $snippet")
+            repository.save(snippet)
 
-            val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion, authorizationHeader)
+            val blobUrl = azuriteService.uploadContentToAzurite(snippet.id, input.content)
+            snippet.content = blobUrl
+
+            val lintResult = validateSnippet(snippet.name, input.content, snippet.language, snippet.languageVersion, authorizationHeader)
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
@@ -62,7 +67,11 @@ class SnippetService
             }
 
             val savedSnippet = repository.save(snippet)
-            giveOwnerPermissionToSnippet(authorId = savedSnippet.authorId, snippetId = savedSnippet.id, authorizationHeader = authorizationHeader)
+            giveOwnerPermissionToSnippet(
+                authorId = savedSnippet.authorId,
+                snippetId = savedSnippet.id,
+                authorizationHeader = authorizationHeader,
+            )
             return savedSnippet
         }
 
@@ -166,7 +175,16 @@ class SnippetService
             val updatedName = input.name ?: snippet.name
             val updatedContent = file?.inputStream?.bufferedReader()?.use { it.readText() } ?: snippet.content
 
-            val updatedSnippet = snippet.copy(name = updatedName, content = updatedContent)
+            val updatedContentUrl =
+                if (file != null) {
+                    // Upload the new content to Azurite
+                    azuriteService.uploadContentToAzurite(snippet.id, updatedContent)
+                } else {
+                    // If there is no file, the content stays the same
+                    snippet.content
+                }
+
+            val updatedSnippet = snippet.copy(name = updatedName, content = updatedContentUrl)
 
             val lintResult =
                 validateSnippet(
@@ -188,7 +206,10 @@ class SnippetService
 
         fun snippetExists(id: String): Boolean = !repository.findById(id).isEmpty
 
-        fun getSnippetContent(id: String): String = repository.findById(id).get().content
+        fun getSnippetContent(id: String): String =
+            azuriteService.getSnippetContent(id)?.let {
+                it.bufferedReader().use { reader -> reader.readText() }
+            } ?: "Content not available"
 
         fun getSnippets(
             principal: Principal,
@@ -218,12 +239,17 @@ class SnippetService
             // Convert the page to a list of SnippetDescriptor
             val snippets =
                 combinedSnippets.map { snippet ->
+                    val snippetContent =
+                        azuriteService.getSnippetContent(snippet.content)?.let {
+                            it.bufferedReader().use { reader -> reader.readText() }
+                        } ?: "Content not available"
+
                     SnippetDescriptor(
                         id = snippet.id,
                         name = snippet.name,
                         authorId = snippet.authorId,
                         createdAt = snippet.createdAt,
-                        content = snippet.content,
+                        content = snippetContent,
                         language = snippet.language,
                         languageVersion = snippet.languageVersion,
                         isValid = false, // Initially, not validated
