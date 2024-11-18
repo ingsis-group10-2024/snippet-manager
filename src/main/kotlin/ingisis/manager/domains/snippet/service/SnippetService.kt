@@ -14,7 +14,7 @@ import ingisis.manager.domains.snippet.model.dto.rest.runner.ValidationResponse
 import ingisis.manager.domains.snippet.model.enums.CompilationStatus
 import ingisis.manager.domains.snippet.persistance.entity.Snippet
 import ingisis.manager.domains.snippet.persistance.repository.SnippetRepository
-chore import ingisis.manager.snippet.service.AzuriteService
+import ingisis.manager.snippet.service.AzuriteService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpEntity
@@ -41,7 +41,8 @@ class SnippetService
 
         fun getSnippetByUserId(userId: String): Snippet = repository.findByUserId(userId)
 
-        fun getSnippetsByUserId(userId: String): List<SnippetDto> = this.repository.findSnippetsByUserId(userId).map { SnippetDto(it) } ?: emptyList()
+        fun getSnippetsByUserId(userId: String): List<SnippetDto> =
+            this.repository.findSnippetsByUserId(userId).map { SnippetDto(it) } ?: emptyList()
 
         fun createSnippet(
             input: CreateSnippetInput,
