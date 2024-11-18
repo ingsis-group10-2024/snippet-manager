@@ -14,6 +14,7 @@ import ingisis.manager.domains.snippet.model.dto.rest.runner.ValidationResponse
 import ingisis.manager.domains.snippet.model.enums.CompilationStatus
 import ingisis.manager.domains.snippet.persistance.entity.Snippet
 import ingisis.manager.domains.snippet.persistance.repository.SnippetRepository
+chore import ingisis.manager.snippet.service.AzuriteService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpEntity
@@ -74,7 +75,7 @@ class SnippetService
 
             val savedSnippet = repository.save(snippet)
             giveOwnerPermissionToSnippet(
-                userId = savedSnippet.authorId,
+                userId = savedSnippet.userId,
                 snippetId = savedSnippet.id,
                 authorizationHeader = authorizationHeader,
             )
@@ -234,7 +235,7 @@ class SnippetService
             authorizationHeader: String,
         ): PaginatedSnippetResponse {
             val pageable = PageRequest.of(page, pageSize)
-            val userSnippetsPage = repository.findByAuthorId(principal.name, pageable)
+            val userSnippetsPage = repository.findByUserId(principal.name, pageable)
 
             // Filter snippets that the user has permission to read
             val sharedSnippetsPage =
@@ -278,5 +279,19 @@ class SnippetService
                 totalPages = (combinedSnippets.size / pageSize) + if (combinedSnippets.size % pageSize == 0) 0 else 1,
                 totalElements = combinedSnippets.size.toLong(),
             )
+        }
+
+        fun updateSnippetCompilationStatus(
+            snippetId: String,
+            status: CompilationStatus,
+        ) {
+            println("Update snippet compilation status with status: $status")
+            val snippet = this.repository.findById(snippetId)
+            if (snippet.isPresent) {
+                snippet.get().compilationStatus = status
+                this.repository.save(snippet.get())
+            } else {
+                throw SnippetNotFoundException("Snippet with ID $snippetId not found")
+            }
         }
     }

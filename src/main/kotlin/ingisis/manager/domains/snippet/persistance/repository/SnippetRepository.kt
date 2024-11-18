@@ -15,7 +15,7 @@ interface SnippetRepository : JpaRepository<Snippet, String> {
         @Param("userId") userId: String,
     ): Snippet
 
-    fun findByUserIdAndPageable(
+    fun findByUserId(
         @Param("userId") userId: String,
         pageable: Pageable,
     ): Page<Snippet>
