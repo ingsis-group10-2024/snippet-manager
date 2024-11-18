@@ -31,6 +31,7 @@ class SnippetService
     constructor(
         private val repository: SnippetRepository,
         private val restTemplate: RestTemplate,
+        private val azuriteService: AzuriteService,
     ) {
         fun getSnippetById(id: String): Snippet =
             repository.findById(id).orElseThrow {
@@ -50,7 +51,7 @@ class SnippetService
             val snippet =
                 Snippet(
                     name = input.name,
-                    content = input.content,
+                    content = "", // Initially empty
                     language = input.language,
                     languageVersion = input.languageVersion,
                     userId = userId,
@@ -58,8 +59,12 @@ class SnippetService
                 )
             println("UserId: $userId")
             println("Creating snippet: $snippet")
+            repository.save(snippet)
 
-            val lintResult = validateSnippet(snippet.name, snippet.content, snippet.language, snippet.languageVersion, authorizationHeader)
+            val blobUrl = azuriteService.uploadContentToAzurite(snippet.id, input.content)
+            snippet.content = blobUrl
+
+            val lintResult = validateSnippet(snippet.name, input.content, snippet.language, snippet.languageVersion, authorizationHeader)
 
             // Throws exceptions if the snippet is invalid
             if (!lintResult.isValid) {
@@ -68,7 +73,11 @@ class SnippetService
             }
 
             val savedSnippet = repository.save(snippet)
-            giveOwnerPermissionToSnippet(userId = savedSnippet.userId, snippetId = savedSnippet.id, authorizationHeader = authorizationHeader)
+            giveOwnerPermissionToSnippet(
+                userId = savedSnippet.authorId,
+                snippetId = savedSnippet.id,
+                authorizationHeader = authorizationHeader,
+            )
             return savedSnippet
         }
 
@@ -182,7 +191,16 @@ class SnippetService
             val updatedName = input.name ?: snippet.name
             val updatedContent = file?.inputStream?.bufferedReader()?.use { it.readText() } ?: snippet.content
 
-            val updatedSnippet = snippet.copy(name = updatedName, content = updatedContent)
+            val updatedContentUrl =
+                if (file != null) {
+                    // Upload the new content to Azurite
+                    azuriteService.uploadContentToAzurite(snippet.id, updatedContent)
+                } else {
+                    // If there is no file, the content stays the same
+                    snippet.content
+                }
+
+            val updatedSnippet = snippet.copy(name = updatedName, content = updatedContentUrl)
 
             val lintResult =
                 validateSnippet(
@@ -204,7 +222,10 @@ class SnippetService
 
         fun snippetExists(id: String): Boolean = !repository.findById(id).isEmpty
 
-        fun getSnippetContent(id: String): String = repository.findById(id).get().content
+        fun getSnippetContent(id: String): String =
+            azuriteService.getSnippetContent(id)?.let {
+                it.bufferedReader().use { reader -> reader.readText() }
+            } ?: "Content not available"
 
         fun getSnippets(
             principal: Principal,
@@ -213,7 +234,7 @@ class SnippetService
             authorizationHeader: String,
         ): PaginatedSnippetResponse {
             val pageable = PageRequest.of(page, pageSize)
-            val userSnippetsPage = repository.findByUserIdAndPageable(principal.name, pageable)
+            val userSnippetsPage = repository.findByAuthorId(principal.name, pageable)
 
             // Filter snippets that the user has permission to read
             val sharedSnippetsPage =
@@ -234,12 +255,17 @@ class SnippetService
             // Convert the page to a list of SnippetDescriptor
             val snippets =
                 combinedSnippets.map { snippet ->
+                    val snippetContent =
+                        azuriteService.getSnippetContent(snippet.content)?.let {
+                            it.bufferedReader().use { reader -> reader.readText() }
+                        } ?: "Content not available"
+
                     SnippetDescriptor(
                         id = snippet.id,
                         name = snippet.name,
                         userId = snippet.userId,
                         createdAt = snippet.createdAt,
-                        content = snippet.content,
+                        content = snippetContent,
                         language = snippet.language,
                         languageVersion = snippet.languageVersion,
                         isValid = false, // Initially, not validated
@@ -252,19 +278,5 @@ class SnippetService
                 totalPages = (combinedSnippets.size / pageSize) + if (combinedSnippets.size % pageSize == 0) 0 else 1,
                 totalElements = combinedSnippets.size.toLong(),
             )
-        }
-
-        fun updateSnippetCompilationStatus(
-            snippetId: String,
-            status: CompilationStatus,
-        ) {
-            println("Update snippet compilation status with status: $status")
-            val snippet = this.repository.findById(snippetId)
-            if (snippet.isPresent) {
-                snippet.get().compilationStatus = status
-                this.repository.save(snippet.get())
-            } else {
-                throw SnippetNotFoundException("Snippet with ID $snippetId not found")
-            }
         }
     }
