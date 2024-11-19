@@ -12,6 +12,8 @@ interface UserRuleRepository : JpaRepository<UserRule, String> {
         ruleType: RuleType,
     ): List<UserRule>
 
+    suspend fun findAllByUserId(userId: String): List<UserRule>
+
     @Query("SELECT ur FROM UserRule ur WHERE ur.rule.nameRule = :ruleName")
     suspend fun findByRuleName(ruleName: String): Optional<UserRule>
 }

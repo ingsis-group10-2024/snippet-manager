@@ -1,0 +1,8 @@
+redis:
+  stream:
+    result_key: result_lint
+    request_key: request_lint
+  host: redis
+  port: 6379
+  groups:
+    lint: group_lint

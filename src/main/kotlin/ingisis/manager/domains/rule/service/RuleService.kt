@@ -5,7 +5,7 @@ import ingisis.manager.domains.rule.model.dto.UserRuleOutput
 import ingisis.manager.domains.rule.model.enums.RuleType
 
 interface RuleService {
-    suspend fun createDefaultRulesForUser(userId: String)
+    fun createDefaultRulesForUser(userId: String)
 
     suspend fun getRulesForUserByType(
         userId: String,

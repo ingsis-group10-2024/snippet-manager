@@ -20,8 +20,11 @@ import java.security.Principal
 class RuleController(
     private val ruleService: RuleService,
 ) {
+    @GetMapping()
+    fun hola(): String = "HOla"
+
     @PostMapping("/default")
-    suspend fun createDefaultRulesForUser(
+    fun createDefaultRulesForUser(
         principal: Principal,
         @RequestHeader("Authorization") token: String,
     ): ResponseEntity<Unit> {

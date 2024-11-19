@@ -23,7 +23,7 @@ class RuleService(
     @Autowired private val snippetService: SnippetService,
     @Autowired private val producer: LintRequestProducer,
 ) : RuleService {
-    override suspend fun createDefaultRulesForUser(userId: String) {
+    override fun createDefaultRulesForUser(userId: String) {
         val rules = ruleRepository.findAll()
         val userRuleEntities = rules.map { rule -> UserRule(userId, rule) }
         userRuleRepository.saveAll(userRuleEntities)
