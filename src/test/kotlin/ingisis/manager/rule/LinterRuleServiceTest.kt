@@ -30,7 +30,7 @@ class LinterRuleServiceTest {
                 )
             whenever(linterRuleRepository.findByUserId(userId)).thenReturn(existingRule)
 
-            val result = service.getLinterRulesByUserId(userId)
+            val result = service.getLinterRuleByUserId(userId)
 
             assertEquals(existingRule.userId, result.userId)
             assertEquals(existingRule.caseConvention.name, result.caseConvention!!.name)

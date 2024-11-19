@@ -1,6 +1,6 @@
 package ingisis.manager.domains.rule.persistance.entity
 
-import ingisis.manager.domains.rule.model.enums.RuleTypeEnum
+import ingisis.manager.domains.rule.model.enums.RuleType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -17,14 +17,8 @@ data class Rule(
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     val id: String = UUID.randomUUID().toString(),
-    @Column(name = "user_id", nullable = false)
-    val userId: String,
-    @Column(name = "name", nullable = false)
-    val name: String,
-    @Column(name = "isActive", nullable = false)
-    var isActive: Boolean,
-    @Column(name = "value", nullable = false)
-    var value: String? = null, // Optional
+    @Column(name = "name-rule", nullable = false)
+    val nameRule: String,
     @Enumerated(EnumType.STRING)
-    val type: RuleTypeEnum,
+    val type: RuleType,
 )

@@ -17,22 +17,17 @@ data class Snippet(
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
     val id: String = UUID.randomUUID().toString(),
-    @Column(name = "name", nullable = false)
-    var name: String,
-    @Column(name = "content", nullable = false)
-    var content: String, // debería pasar a ser un id para guardar el contenido en un bucket
-    @Column(name = "user-id", nullable = false)
     val userId: String,
-    @Column(name = "compilation-status", nullable = false)
+    val snippetKey: String,
+    var name: String,
+    var content: String, // debería pasar a ser un id para guardar el contenido en un bucket
     var compilationStatus: CompilationStatus = CompilationStatus.PENDING,
+    var language: String,
+    var languageVersion: String,
+    var extension: String,
     @CreationTimestamp
     val createdAt: LocalDateTime = LocalDateTime.now(),
     @UpdateTimestamp
     var updatedAt: LocalDateTime = LocalDateTime.now(),
-    @Column(nullable = false)
-    var language: String,
-    @Column(nullable = false)
-    var languageVersion: String,
-    @Column(nullable = false)
-    var extension: String,
+
 )

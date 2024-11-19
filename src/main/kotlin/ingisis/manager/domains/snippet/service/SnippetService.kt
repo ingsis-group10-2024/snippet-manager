@@ -282,17 +282,14 @@ class SnippetService
             )
         }
 
-        fun updateSnippetCompilationStatus(
-            snippetId: String,
-            status: CompilationStatus,
-        ) {
-            println("Update snippet compilation status with status: $status")
-            val snippet = this.repository.findById(snippetId)
-            if (snippet.isPresent) {
-                snippet.get().compilationStatus = status
-                this.repository.save(snippet.get())
-            } else {
-                throw SnippetNotFoundException("Snippet with ID $snippetId not found")
-            }
+
+    fun updateAllUserSnippetsStatus(userId: String, newStatus: CompilationStatus): MutableList<Snippet> {
+        val userSnippets = repository.findSnippetsByUserId(userId)
+
+        for (snippet in userSnippets) {
+            snippet.compilationStatus = newStatus
         }
+
+        return repository.saveAll(userSnippets)
     }
+}
