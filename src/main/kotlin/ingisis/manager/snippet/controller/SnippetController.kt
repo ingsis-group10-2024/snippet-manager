@@ -135,10 +135,6 @@ class SnippetController(
         }
     }
 
-    @GetMapping("/id")
-    fun getUserId(principal: Principal): ResponseEntity<String> = ResponseEntity.ok(principal.name)
-
-    @PreAuthorize("hasAuthority('SCOPE_read:snippet')")
     @GetMapping("/view/{id}")
     fun viewSnippet(
         @PathVariable id: String,
@@ -149,18 +145,19 @@ class SnippetController(
         return ResponseEntity.ok(snippetService.getSnippetContent(id))
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_read:snippet')")
     @GetMapping("/snippets")
     fun listUserSnippets(
         @RequestParam page: Int,
         @RequestParam pageSize: Int,
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
-    ): PaginatedSnippetResponse {
+    ): ResponseEntity<PaginatedSnippetResponse> {
         // Get the paginated snippets
-        val paginatedResponse = snippetService.getSnippets(principal, page, pageSize, authorizationHeader)
+        val paginatedResponse = snippetService.getSnippetDescriptors(principal, page, pageSize, authorizationHeader)
         println("paginatedResponse: $paginatedResponse")
         // Validate each snippet
+
+
         val validatedSnippets =
             paginatedResponse.snippets.map { snippet ->
                 val validationResponse =
@@ -181,41 +178,18 @@ class SnippetController(
         println("Snippets validated: $validatedSnippets") // DEBUG
 
         // Build the response
-        return PaginatedSnippetResponse(
+        return ResponseEntity.ok(PaginatedSnippetResponse(
             snippets = validatedSnippets,
             totalPages = paginatedResponse.totalPages,
             totalElements = paginatedResponse.totalElements,
-        )
+        ))
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_read:snippet')")
-    @GetMapping("/get/{snippetId}")
+    @GetMapping("/get")
     fun getSnippet(
-        @PathVariable snippetId: String,
+        @RequestParam snippetId: String,
         @RequestHeader("Authorization") authorizationHeader: String,
     ): ResponseEntity<SnippetDescriptor> {
-        val snippet = snippetService.getSnippetById(snippetId)
-
-        val validationResponse =
-            snippetService.validateSnippet(
-                name = snippet.name,
-                content = snippet.content,
-                language = snippet.language,
-                languageVersion = snippet.languageVersion,
-                authorizationHeader = authorizationHeader,
-            )
-        val snippetDescriptor =
-            SnippetDescriptor(
-                id = snippet.id,
-                name = snippet.name,
-                authorId = snippet.authorId,
-                createdAt = snippet.createdAt,
-                content = snippet.content,
-                language = snippet.language,
-                languageVersion = snippet.languageVersion,
-                isValid = validationResponse.isValid,
-                validationErrors = validationResponse.errors,
-            )
-        return ResponseEntity.ok(snippetDescriptor)
+        return ResponseEntity.ok(snippetService.getSnippetDescriptor(snippetId, authorizationHeader))
     }
 }
