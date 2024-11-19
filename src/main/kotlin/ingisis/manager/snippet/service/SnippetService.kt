@@ -211,8 +211,10 @@ class SnippetService
                 it.bufferedReader().use { reader -> reader.readText() }
             } ?: "Content not available"
 
-        fun getSnippetDescriptor(snippetId: String, authorizationHeader: String): SnippetDescriptor {
-
+        fun getSnippetDescriptor(
+            snippetId: String,
+            authorizationHeader: String,
+        ): SnippetDescriptor {
             val snippet = getSnippetById(snippetId)
             println("Snippet found: $snippet")
 

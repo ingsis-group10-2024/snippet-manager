@@ -157,7 +157,6 @@ class SnippetController(
         println("paginatedResponse: $paginatedResponse")
         // Validate each snippet
 
-
         val validatedSnippets =
             paginatedResponse.snippets.map { snippet ->
                 val validationResponse =
@@ -178,18 +177,18 @@ class SnippetController(
         println("Snippets validated: $validatedSnippets") // DEBUG
 
         // Build the response
-        return ResponseEntity.ok(PaginatedSnippetResponse(
-            snippets = validatedSnippets,
-            totalPages = paginatedResponse.totalPages,
-            totalElements = paginatedResponse.totalElements,
-        ))
+        return ResponseEntity.ok(
+            PaginatedSnippetResponse(
+                snippets = validatedSnippets,
+                totalPages = paginatedResponse.totalPages,
+                totalElements = paginatedResponse.totalElements,
+            ),
+        )
     }
 
     @GetMapping("/get")
     fun getSnippet(
         @RequestParam snippetId: String,
         @RequestHeader("Authorization") authorizationHeader: String,
-    ): ResponseEntity<SnippetDescriptor> {
-        return ResponseEntity.ok(snippetService.getSnippetDescriptor(snippetId, authorizationHeader))
-    }
+    ): ResponseEntity<SnippetDescriptor> = ResponseEntity.ok(snippetService.getSnippetDescriptor(snippetId, authorizationHeader))
 }
