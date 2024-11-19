@@ -2,7 +2,6 @@ package ingisis.manager.domains.snippet.service
 
 import ingisis.manager.domains.snippet.exception.InvalidSnippetException
 import ingisis.manager.domains.snippet.exception.SnippetNotFoundException
-import ingisis.manager.domains.snippet.model.dto.SnippetDto
 import ingisis.manager.domains.snippet.model.dto.SnippetRequest
 import ingisis.manager.domains.snippet.model.dto.UpdateSnippetInput
 import ingisis.manager.domains.snippet.model.dto.createSnippet.CreateSnippetInput
@@ -15,6 +14,7 @@ import ingisis.manager.domains.snippet.model.enums.CompilationStatus
 import ingisis.manager.domains.snippet.persistance.entity.Snippet
 import ingisis.manager.domains.snippet.persistance.repository.SnippetRepository
 import ingisis.manager.snippet.service.AzuriteService
+import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpEntity
@@ -25,6 +25,7 @@ import org.springframework.util.MultiValueMap
 import org.springframework.web.client.RestTemplate
 import org.springframework.web.multipart.MultipartFile
 import java.security.Principal
+import java.util.UUID
 
 @Service
 class SnippetService
@@ -41,9 +42,6 @@ class SnippetService
 
         fun getSnippetByUserId(userId: String): Snippet = repository.findByUserId(userId)
 
-        fun getSnippetsByUserId(userId: String): List<SnippetDto> =
-            this.repository.findSnippetsByUserId(userId).map { SnippetDto(it) } ?: emptyList()
-
         fun createSnippet(
             input: CreateSnippetInput,
             principal: Principal,
@@ -53,6 +51,7 @@ class SnippetService
             val snippet =
                 Snippet(
                     name = input.name,
+                    snippetKey = UUID.randomUUID().toString(),
                     content = "", // Initially empty
                     language = input.language,
                     languageVersion = input.languageVersion,
@@ -282,14 +281,25 @@ class SnippetService
             )
         }
 
+        fun updateAllUserSnippetsStatus(
+            userId: String,
+            newStatus: CompilationStatus,
+        ): MutableList<Snippet> {
+            val userSnippets = repository.findSnippetsByUserId(userId)
 
-    fun updateAllUserSnippetsStatus(userId: String, newStatus: CompilationStatus): MutableList<Snippet> {
-        val userSnippets = repository.findSnippetsByUserId(userId)
+            for (snippet in userSnippets) {
+                snippet.compilationStatus = newStatus
+            }
 
-        for (snippet in userSnippets) {
-            snippet.compilationStatus = newStatus
+            return repository.saveAll(userSnippets)
         }
 
-        return repository.saveAll(userSnippets)
+        @Transactional
+        fun updateUserSnippetStatusBySnippetKey(
+            userId: String,
+            snippetKey: String,
+            status: CompilationStatus,
+        ) {
+            repository.updateByUserIdAndSnippetKey(userId, snippetKey, status)
+        }
     }
-}

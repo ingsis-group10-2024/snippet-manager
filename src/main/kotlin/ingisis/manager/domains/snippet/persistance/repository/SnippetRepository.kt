@@ -1,9 +1,11 @@
 package ingisis.manager.domains.snippet.persistance.repository
 
+import ingisis.manager.domains.snippet.model.enums.CompilationStatus
 import ingisis.manager.domains.snippet.persistance.entity.Snippet
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 
@@ -19,4 +21,12 @@ interface SnippetRepository : JpaRepository<Snippet, String> {
         @Param("userId") userId: String,
         pageable: Pageable,
     ): Page<Snippet>
+
+    @Modifying
+    @Query("UPDATE Snippet s SET s.compilationStatus = :status WHERE s.userId = :userId AND s.snippetKey = :snippetKey")
+    fun updateByUserIdAndSnippetKey(
+        userId: String,
+        snippetKey: String,
+        status: CompilationStatus,
+    )
 }

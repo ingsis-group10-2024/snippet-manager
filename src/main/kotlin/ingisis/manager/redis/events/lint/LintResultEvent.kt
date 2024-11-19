@@ -1,7 +1,8 @@
 package ingisis.manager.redis.events.lint
 
 data class LintResultEvent(
-    val snippetId: String,
+    val userId: String,
+    val snippetKey: String,
     val status: LintResultStatus,
 )
 

@@ -6,11 +6,12 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import java.util.Optional
 
-interface UserRuleRepository : JpaRepository<UserRule, String>{
-
-    suspend fun findByUserIdAndRuleType(userId: String, ruleType: RuleType): List<UserRule>
+interface UserRuleRepository : JpaRepository<UserRule, String> {
+    suspend fun findByUserIdAndRuleType(
+        userId: String,
+        ruleType: RuleType,
+    ): List<UserRule>
 
     @Query("SELECT ur FROM UserRule ur WHERE ur.rule.nameRule = :ruleName")
     suspend fun findByRuleName(ruleName: String): Optional<UserRule>
-
 }

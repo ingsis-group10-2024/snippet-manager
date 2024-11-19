@@ -37,15 +37,20 @@ class LintResultConsumer
          *               y el estado del resultado del lint.
          */
         public override fun onMessage(record: ObjectRecord<String, LintResultEvent>) {
+            val userId = record.value.userId
+            val snippetKey = record.value.snippetKey
+            val status = toCompilationStatus(record.value.status)
+
             println(
                 "Received event: " +
                     "LintResultEvent(" +
-                    "snippetKey: ${record.value.snippetId}, " +
-                    "status: ${record.value.status}" +
+                    "userId: $userId, " +
+                    "snippetKey: $snippetKey, " +
+                    "status: $status" +
                     ")",
             )
 
-            snippetService.updateSnippetCompilationStatus(record.value.snippetId, toCompilationStatus(record.value.status))
+            snippetService.updateUserSnippetStatusBySnippetKey(userId, snippetKey, status)
 
             println("Finished processing event")
         }

@@ -23,7 +23,6 @@ class RuleService(
     @Autowired private val snippetService: SnippetService,
     @Autowired private val producer: LintRequestProducer,
 ) : RuleService {
-
     override suspend fun createDefaultRulesForUser(userId: String) {
         val rules = ruleRepository.findAll()
         val userRuleEntities = rules.map { rule -> UserRule(userId, rule) }
@@ -43,11 +42,10 @@ class RuleService(
         userId: String,
         updatedRules: List<UpdateUserRuleInput>,
     ): List<UserRuleOutput> {
-
         val rulesToSave = getUserRulesToSave(updatedRules)
         val savedRules = userRuleRepository.saveAll(rulesToSave)
 
-        if (lintingRuleWasUpdated(savedRules)){
+        if (lintingRuleWasUpdated(savedRules)) {
             val userSnippets = snippetService.updateAllUserSnippetsStatus(userId, CompilationStatus.PENDING)
             val userSnippetKeys = userSnippets.map { it.snippetKey }
 
@@ -57,23 +55,21 @@ class RuleService(
         return savedRules.map { toUserRuleOutput(it) }
     }
 
-
-    private fun toUserRuleOutput(userRule: UserRule): UserRuleOutput {
-        return UserRuleOutput(
+    private fun toUserRuleOutput(userRule: UserRule): UserRuleOutput =
+        UserRuleOutput(
             id = userRule.id,
             userId = userRule.userId,
             name = userRule.rule.nameRule,
             type = userRule.rule.type,
             isActive = userRule.isActive,
         )
-    }
 
-    private suspend fun getUserRulesToSave(updatedRules: List<UpdateUserRuleInput>) : List<UserRule> {
+    private suspend fun getUserRulesToSave(updatedRules: List<UpdateUserRuleInput>): List<UserRule> {
         val userRules = mutableListOf<UserRule>()
-        for (rule in updatedRules){
+        for (rule in updatedRules) {
             val userRuleOptional = userRuleRepository.findByRuleName(rule.name)
 
-            if (userRuleOptional.isEmpty){
+            if (userRuleOptional.isEmpty) {
                 throw RuntimeException("Rule ${rule.name} not found")
             }
 
@@ -86,12 +82,12 @@ class RuleService(
         return userRules
     }
 
-    private fun lintingRuleWasUpdated(rules: List<UserRule>): Boolean {
-        return rules.any { it.rule.type == RuleType.LINT }
-    }
+    private fun lintingRuleWasUpdated(rules: List<UserRule>): Boolean = rules.any { it.rule.type == RuleType.LINT }
 
-    private suspend fun publishLintEventForAll(userId: String, snippetKeys: List<String>) {
-
+    private suspend fun publishLintEventForAll(
+        userId: String,
+        snippetKeys: List<String>,
+    ) {
         val userRules = getRulesForUserByType(userId, RuleType.LINT)
         for (key in snippetKeys) {
             producer.publishEvent(
@@ -101,24 +97,23 @@ class RuleService(
     }
 
     private suspend fun toLintRulesConfig(lintRules: List<UserRuleOutput>): LintRulesConfig {
-        val caseConvention = lintRules
-            .firstOrNull { it.name.equals("caseConvention", ignoreCase = true) }
-            ?.name
-            ?.let { enumValueOf<CaseConvention>(it.uppercase()) }
-            ?: CaseConvention.CAMEL_CASE // Valor predeterminado si no se encuentra la regla
+        val caseConvention =
+            lintRules
+                .firstOrNull { it.name.equals("caseConvention", ignoreCase = true) }
+                ?.name
+                ?.let { enumValueOf<CaseConvention>(it.uppercase()) }
+                ?: CaseConvention.CAMEL_CASE // Valor predeterminado si no se encuentra la regla
 
-        val printExpressionsEnabled = lintRules
-            .firstOrNull { it.name.equals("printExpressionsEnabled", ignoreCase = true) }
-            ?.name
-            ?.toBooleanStrictOrNull()
-            ?: false // Valor predeterminado si no se encuentra la regla
+        val printExpressionsEnabled =
+            lintRules
+                .firstOrNull { it.name.equals("printExpressionsEnabled", ignoreCase = true) }
+                ?.name
+                ?.toBooleanStrictOrNull()
+                ?: false // Valor predeterminado si no se encuentra la regla
 
         return LintRulesConfig(
             caseConvention = caseConvention,
-            printExpressionsEnabled = printExpressionsEnabled
+            printExpressionsEnabled = printExpressionsEnabled,
         )
     }
-
-
 }
-

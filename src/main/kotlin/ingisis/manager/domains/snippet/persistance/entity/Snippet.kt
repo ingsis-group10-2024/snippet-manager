@@ -29,5 +29,4 @@ data class Snippet(
     val createdAt: LocalDateTime = LocalDateTime.now(),
     @UpdateTimestamp
     var updatedAt: LocalDateTime = LocalDateTime.now(),
-
 )

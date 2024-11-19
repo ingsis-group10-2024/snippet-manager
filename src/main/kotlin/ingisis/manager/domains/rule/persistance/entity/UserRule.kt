@@ -21,11 +21,11 @@ data class UserRule(
     @ManyToOne
     @JoinColumn(name = "rule_id", nullable = false)
     val rule: Rule,
-){
+) {
     // for creating default rules for a user juju
     constructor(userId: String, rule: Rule) : this(
         userId = userId,
         isActive = false,
-        rule = rule
+        rule = rule,
     )
 }
