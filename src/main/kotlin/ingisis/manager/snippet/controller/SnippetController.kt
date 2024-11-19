@@ -50,25 +50,7 @@ class SnippetController(
         return ResponseEntity.ok(validationResponse)
     }
 
-    @PostMapping("/process")
-    fun processSnippet(
-        @RequestBody request: SnippetRequest,
-        principal: Principal,
-        @RequestHeader("Authorization") authorizationHeader: String,
-    ): ResponseEntity<ValidationResponse> {
-        val response =
-            snippetService.validateSnippet(
-                request.name,
-                request.content,
-                request.language,
-                request.languageVersion,
-                authorizationHeader,
-            )
-        return ResponseEntity.ok(response)
-    }
-
-    @PreAuthorize("hasAuthority('SCOPE_create:snippet')")
-    @PostMapping()
+    @PostMapping
     fun createSnippet(
         @RequestBody input: CreateSnippetInput,
         principal: Principal,
@@ -97,7 +79,6 @@ class SnippetController(
             )
         }
 
-    @PreAuthorize("hasAuthority('SCOPE_create:snippet')")
     @PostMapping("/upload")
     fun uploadSnippet(
         @ModelAttribute input: CreateSnippetInput,
@@ -170,7 +151,7 @@ class SnippetController(
 
     @PreAuthorize("hasAuthority('SCOPE_read:snippet')")
     @GetMapping("/snippets")
-    fun getSnippets(
+    fun listUserSnippets(
         @RequestParam page: Int,
         @RequestParam pageSize: Int,
         principal: Principal,
@@ -197,7 +178,7 @@ class SnippetController(
                 )
             }
 
-        println("Snippets validados: $validatedSnippets") // DEBUG
+        println("Snippets validated: $validatedSnippets") // DEBUG
 
         // Build the response
         return PaginatedSnippetResponse(
@@ -209,7 +190,7 @@ class SnippetController(
 
     @PreAuthorize("hasAuthority('SCOPE_read:snippet')")
     @GetMapping("/get/{snippetId}")
-    fun getSnippetDescriptor(
+    fun getSnippet(
         @PathVariable snippetId: String,
         @RequestHeader("Authorization") authorizationHeader: String,
     ): ResponseEntity<SnippetDescriptor> {

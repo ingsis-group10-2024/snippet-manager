@@ -34,15 +34,22 @@ class AzuriteService {
         return blobServiceClient.getBlobContainerClient(containerName)
     }
 
-    fun getSnippetContent(snippetId: String): InputStream? {
+    fun getSnippetContent(snippetUrl: String): InputStream? {
+        println("Getting snippet content from Azurite. SnippetUrl: $snippetUrl")
+
+        // Parse the URL to extract the container name and snippetId
+        val snippetId = snippetUrl.substringAfterLast("/") // Extract the snippetId from the URL
+        println("SnippetId: $snippetId")
         val containerClient = getContainerClient()
         val blobClient: BlobClient = containerClient.getBlobClient(snippetId)
 
         return if (blobClient.exists()) {
             val outputStream = ByteArrayOutputStream()
             blobClient.download(outputStream)
+            println("Snippet content '$snippetId' downloaded successfully.")
             ByteArrayInputStream(outputStream.toByteArray())
         } else {
+            println("Blob with snippetId '$snippetId' does not exist.")
             null
         }
     }
