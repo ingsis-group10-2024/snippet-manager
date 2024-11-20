@@ -15,6 +15,7 @@ import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpEntity
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.util.LinkedMultiValueMap
@@ -96,6 +97,60 @@ class SnippetService
             restTemplate.postForEntity(url, requestEntity, String::class.java)
         }
 
+
+        fun updateSnippetById(id: String, input: UpdateSnippetInput, userId: String, authorizationHeader: String): Snippet {
+            val snippet = getSnippetById(id)
+
+            // Check if the user has permission to update the snippet
+            val hasPermission = checkUserPermission(
+                snippetId = id,
+                userId = userId,
+                authorizationHeader = authorizationHeader,
+                requiredPermission = "OWNER"
+            )
+            if (!hasPermission) {
+                throw SecurityException("User does not have permission to update this snippet.")
+            }
+
+            // Validate the updated content
+            val lintResult = validateSnippet(
+                name = snippet.name,
+                content = input.content,
+                language = snippet.language,
+                languageVersion = snippet.languageVersion,
+                authorizationHeader = authorizationHeader
+            )
+            if (!lintResult.isValid) {
+                throw InvalidSnippetException(lintResult.errors ?: emptyList())
+            }
+
+            // Update azurite content
+            val updatedContentUrl = azuriteService.uploadContentToAzurite(snippet.id, input.content)
+            val updatedSnippet = snippet.copy(content = updatedContentUrl)
+            return repository.save(updatedSnippet)
+        }
+
+        fun deleteSnippetById(
+            id: String,
+            principal: Principal,
+            authorizationHeader: String,
+        ) {
+            val snippet = getSnippetById(id)
+
+            val hasPermission = checkUserPermission(
+                snippetId = id,
+                userId = principal.name,
+                authorizationHeader = authorizationHeader,
+                requiredPermission = "OWNER"
+            )
+            if (!hasPermission) {
+                throw SecurityException("User does not have permission to delete this snippet.")
+            }
+
+            azuriteService.deleteContentFromAzurite(snippet.id)
+            repository.deleteById(id)
+        }
+
         fun validateSnippet(
             name: String,
             content: String,
@@ -161,47 +216,6 @@ class SnippetService
             val snippetData = input.copy(content = content)
 
             return createSnippet(snippetData, principal, authorizationHeader)
-        }
-
-        fun processFileAndUpdateSnippet(
-            id: String,
-            input: UpdateSnippetInput,
-            file: MultipartFile?,
-            principal: Principal,
-            authorizationHeader: String,
-        ): Snippet {
-            val snippet = getSnippetById(id)
-
-            val updatedName = input.name ?: snippet.name
-            val updatedContent = file?.inputStream?.bufferedReader()?.use { it.readText() } ?: snippet.content
-
-            val updatedContentUrl =
-                if (file != null) {
-                    // Upload the new content to Azurite
-                    azuriteService.uploadContentToAzurite(snippet.id, updatedContent)
-                } else {
-                    // If there is no file, the content stays the same
-                    snippet.content
-                }
-
-            val updatedSnippet = snippet.copy(name = updatedName, content = updatedContentUrl)
-
-            val lintResult =
-                validateSnippet(
-                    updatedSnippet.name,
-                    updatedSnippet.content,
-                    updatedSnippet.language,
-                    updatedSnippet.languageVersion,
-                    authorizationHeader,
-                )
-
-            // Throws exceptions if the snippet is invalid
-            if (!lintResult.isValid) {
-                val errors = lintResult.errors ?: emptyList() // Get the errors from the response
-                throw InvalidSnippetException(errors)
-            }
-
-            return repository.save(updatedSnippet)
         }
 
         fun snippetExists(id: String): Boolean = !repository.findById(id).isEmpty
