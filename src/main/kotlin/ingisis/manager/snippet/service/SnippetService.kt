@@ -15,7 +15,6 @@ import ingisis.manager.snippet.persistance.repository.SnippetRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpEntity
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.util.LinkedMultiValueMap
@@ -97,29 +96,35 @@ class SnippetService
             restTemplate.postForEntity(url, requestEntity, String::class.java)
         }
 
-
-        fun updateSnippetById(id: String, input: UpdateSnippetInput, userId: String, authorizationHeader: String): Snippet {
+        fun updateSnippetById(
+            id: String,
+            input: UpdateSnippetInput,
+            userId: String,
+            authorizationHeader: String,
+        ): Snippet {
             val snippet = getSnippetById(id)
 
             // Check if the user has permission to update the snippet
-            val hasPermission = checkUserPermission(
-                snippetId = id,
-                userId = userId,
-                authorizationHeader = authorizationHeader,
-                requiredPermission = "OWNER"
-            )
+            val hasPermission =
+                checkUserPermission(
+                    snippetId = id,
+                    userId = userId,
+                    authorizationHeader = authorizationHeader,
+                    requiredPermission = "OWNER",
+                )
             if (!hasPermission) {
                 throw SecurityException("User does not have permission to update this snippet.")
             }
 
             // Validate the updated content
-            val lintResult = validateSnippet(
-                name = snippet.name,
-                content = input.content,
-                language = snippet.language,
-                languageVersion = snippet.languageVersion,
-                authorizationHeader = authorizationHeader
-            )
+            val lintResult =
+                validateSnippet(
+                    name = snippet.name,
+                    content = input.content,
+                    language = snippet.language,
+                    languageVersion = snippet.languageVersion,
+                    authorizationHeader = authorizationHeader,
+                )
             if (!lintResult.isValid) {
                 throw InvalidSnippetException(lintResult.errors ?: emptyList())
             }
@@ -137,12 +142,13 @@ class SnippetService
         ) {
             val snippet = getSnippetById(id)
 
-            val hasPermission = checkUserPermission(
-                snippetId = id,
-                userId = principal.name,
-                authorizationHeader = authorizationHeader,
-                requiredPermission = "OWNER"
-            )
+            val hasPermission =
+                checkUserPermission(
+                    snippetId = id,
+                    userId = principal.name,
+                    authorizationHeader = authorizationHeader,
+                    requiredPermission = "OWNER",
+                )
             if (!hasPermission) {
                 throw SecurityException("User does not have permission to delete this snippet.")
             }

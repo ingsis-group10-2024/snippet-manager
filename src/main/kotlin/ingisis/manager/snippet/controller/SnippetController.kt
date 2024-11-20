@@ -85,66 +85,65 @@ class SnippetController(
         @RequestBody input: UpdateSnippetInput,
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
-    ): ResponseEntity<SnippetResponse> {
-        return try {
-            val updatedSnippet = snippetService.updateSnippetById(
-                id = id,
-                input = input,
-                userId = principal.name,
-                authorizationHeader = authorizationHeader
-            )
+    ): ResponseEntity<SnippetResponse> =
+        try {
+            val updatedSnippet =
+                snippetService.updateSnippetById(
+                    id = id,
+                    input = input,
+                    userId = principal.name,
+                    authorizationHeader = authorizationHeader,
+                )
             ResponseEntity.ok(SnippetResponse("Successfully updated snippet: ${updatedSnippet.id}"))
         } catch (e: SnippetNotFoundException) {
             ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 SnippetResponse(
-                    message = "Snippet with ID $id not found."
-                )
+                    message = "Snippet with ID $id not found.",
+                ),
             )
         } catch (e: InvalidSnippetException) {
             ResponseEntity.badRequest().body(
                 SnippetResponse(
                     message = "Invalid snippet content",
-                    errors = e.errors
-                )
+                    errors = e.errors,
+                ),
             )
         } catch (e: Exception) {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 SnippetResponse(
-                    message = "An unexpected error occurred: ${e.message}"
-                )
+                    message = "An unexpected error occurred: ${e.message}",
+                ),
             )
         }
-    }
 
     @DeleteMapping("/{id}")
     fun deleteSnippetById(
         @PathVariable id: String,
         principal: Principal,
         @RequestHeader("Authorization") authorizationHeader: String,
-    ): ResponseEntity<SnippetResponse> {
-        return try {
+    ): ResponseEntity<SnippetResponse> =
+        try {
             snippetService.deleteSnippetById(id, principal, authorizationHeader)
             ResponseEntity.ok(SnippetResponse("Successfully deleted snippet with ID: $id"))
         } catch (e: SnippetNotFoundException) {
             ResponseEntity.status(HttpStatus.NOT_FOUND).body(
                 SnippetResponse(
-                    message = "Snippet with ID $id not found."
-                )
+                    message = "Snippet with ID $id not found.",
+                ),
             )
         } catch (e: SecurityException) {
             ResponseEntity.status(HttpStatus.FORBIDDEN).body(
                 SnippetResponse(
-                    message = "You do not have permission to delete this snippet."
-                )
+                    message = "You do not have permission to delete this snippet.",
+                ),
             )
         } catch (e: Exception) {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
                 SnippetResponse(
-                    message = "An unexpected error occurred: ${e.message}"
-                )
+                    message = "An unexpected error occurred: ${e.message}",
+                ),
             )
         }
-    }
 
     @PostMapping("/upload")
     fun uploadSnippet(
