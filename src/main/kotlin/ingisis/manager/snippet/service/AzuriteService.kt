@@ -34,15 +34,22 @@ class AzuriteService {
         return blobServiceClient.getBlobContainerClient(containerName)
     }
 
-    fun getSnippetContent(snippetId: String): InputStream? {
+    fun getSnippetContent(snippetUrl: String): InputStream? {
+        println("Getting snippet content from Azurite. SnippetUrl: $snippetUrl")
+
+        // Parse the URL to extract the container name and snippetId
+        val snippetId = snippetUrl.substringAfterLast("/") // Extract the snippetId from the URL
+        println("SnippetId: $snippetId")
         val containerClient = getContainerClient()
         val blobClient: BlobClient = containerClient.getBlobClient(snippetId)
 
         return if (blobClient.exists()) {
             val outputStream = ByteArrayOutputStream()
             blobClient.download(outputStream)
+            println("Snippet content '$snippetId' downloaded successfully.")
             ByteArrayInputStream(outputStream.toByteArray())
         } else {
+            println("Blob with snippetId '$snippetId' does not exist.")
             null
         }
     }
@@ -51,6 +58,7 @@ class AzuriteService {
         snippetId: String,
         content: String,
     ): String {
+        println("Upload snippet content to Azurite. SnippetId: $snippetId")
         val containerClient = getContainerClient()
         val blobClient: BlobClient = containerClient.getBlobClient(snippetId)
 
@@ -60,5 +68,19 @@ class AzuriteService {
 
         println("Snippet content '$snippetId' uploaded successfully.")
         return blobClient.blobUrl.toString()
+    }
+
+    fun deleteContentFromAzurite(snippetId: String) {
+        println("Deleting snippet content from Azurite. SnippetId: $snippetId")
+
+        val containerClient = getContainerClient()
+        val blobClient: BlobClient = containerClient.getBlobClient(snippetId)
+
+        if (blobClient.exists()) {
+            blobClient.delete()
+            println("Snippet content '$snippetId' deleted successfully.")
+        } else {
+            println("Blob with snippetId '$snippetId' does not exist. Nothing to delete.")
+        }
     }
 }

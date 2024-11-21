@@ -30,6 +30,8 @@ class OAuth2ResourceServerSecurityConfiguration(
                 it
                     .requestMatchers("/")
                     .permitAll()
+                    .requestMatchers(GET, "manager/snippets/get/{snippetId}")
+                    .hasAuthority("SCOPE_read:snippet")
                     .requestMatchers(GET, "/manager/snippet")
                     .hasAuthority("SCOPE_read:snippet")
                     .requestMatchers(GET, "/manager/snippet/**")
