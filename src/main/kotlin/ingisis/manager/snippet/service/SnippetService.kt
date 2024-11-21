@@ -36,6 +36,8 @@ class SnippetService
                 SnippetNotFoundException("Snippet with ID $id not found")
             }
 
+        fun getSnippetsByUserId(userId: String): List<Snippet> = repository.findByAuthorId(userId)
+
         fun createSnippet(
             input: CreateSnippetInput,
             principal: Principal,

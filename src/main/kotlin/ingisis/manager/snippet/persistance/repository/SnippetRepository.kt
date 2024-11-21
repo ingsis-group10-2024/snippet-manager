@@ -12,4 +12,6 @@ interface SnippetRepository : JpaRepository<Snippet, String> {
         authorId: String,
         pageable: Pageable,
     ): Page<Snippet>
+
+    fun findByAuthorId(authorId: String): List<Snippet>
 }
