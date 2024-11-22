@@ -53,7 +53,15 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
     implementation 'org.springframework.data:spring-data-redis'
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")  // Coroutines para Reactor
+
+    // Coroutines for Reactor
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
+
+    // New Relic
+    implementation 'com.newrelic.agent.java:newrelic-api:6.5.0'
+    implementation 'com.gilt:lib-newrelic-logback_2.11:0.6.1'
+
+
 }
 
 kotlin {
