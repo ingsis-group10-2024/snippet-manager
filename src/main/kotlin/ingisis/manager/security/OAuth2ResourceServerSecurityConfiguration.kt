@@ -46,6 +46,7 @@ class OAuth2ResourceServerSecurityConfiguration(
             .csrf { it.disable() }
         return http.build()
     }
+    // TODO: cambiar la seguridad de los endpoints del controlador para que se controle desde aca en filterchain.
 
     @Bean
     fun corsConfigurationSource(): UrlBasedCorsConfigurationSource {
