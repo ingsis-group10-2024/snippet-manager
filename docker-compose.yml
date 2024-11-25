@@ -15,7 +15,7 @@ services:
 
 
   app:
-    container_name: "snippet-manager"
+    container_name: "manager-local"
     build:
       context: .
       dockerfile: Dockerfile
@@ -25,9 +25,16 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
+      AZURE_CONNECTION_STRING: ${AZURE_CONNECTION_STRING}
+      AUTH_CLIENT_ID_M2M: ${AUTH_CLIENT_ID_M2M}
+      AUTH_CLIENT_SECRET_M2M: ${AUTH_CLIENT_SECRET_M2M}
+      AUTH_ISSUER_URI: ${AUTH_ISSUER_URI}
+      AUTH0_AUDIENCE_M2M: ${AUTH0_AUDIENCE_M2M}
+      NEW_RELIC_APP_NAME: ${NEW_RELIC_APP_NAME}
+      NEW_RELIC_LICENSE_KEY: ${NEW_RELIC_LICENSE_KEY}
+      NEW_RELIC_AGENT_ENABLED: ${NEW_RELIC_AGENT_ENABLED}
     depends_on:
       - manager-db
-
 
 volumes:
   postgres-data:

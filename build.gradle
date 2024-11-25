@@ -1,9 +1,9 @@
 plugins {
-	id 'org.jetbrains.kotlin.jvm' version '1.9.25'
-	id 'org.jetbrains.kotlin.plugin.spring' version '1.9.25'
-	id 'org.springframework.boot' version '3.3.4'
-	id 'io.spring.dependency-management' version '1.1.6'
-	id 'org.jetbrains.kotlin.plugin.jpa' version '1.9.25'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.25'
+    id 'org.jetbrains.kotlin.plugin.spring' version '1.9.25'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+    id 'org.jetbrains.kotlin.plugin.jpa' version '1.9.25'
 
     id 'jacoco'
 }
@@ -16,9 +16,9 @@ group = 'ingisis'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
@@ -35,30 +35,39 @@ repositories {
 }
 
 dependencies {
-
     implementation 'printscript:sca:2.1.10-SNAPSHOT'
     implementation 'printscript:common:2.1.10-SNAPSHOT'
-
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.module:jackson-module-kotlin'
-	implementation 'org.jetbrains.kotlin:kotlin-reflect'
+    implementation 'org.jetbrains.kotlin:kotlin-reflect'
     implementation 'org.postgresql:postgresql:42.7.3'
     ktlint 'com.pinterest.ktlint:ktlint-cli:1.3.1'
-
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.okta.spring:okta-spring-boot-starter:3.0.5'
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
+    implementation 'io.projectreactor:reactor-core:3.4.20'
+    implementation 'com.azure:azure-storage-blob:12.12.0'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
+    implementation 'org.springframework.data:spring-data-redis'
+
+    // Coroutines for Reactor
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.3")
+
+    // New Relic
+    implementation 'com.newrelic.agent.java:newrelic-api:6.5.0'
+    implementation 'com.gilt:lib-newrelic-logback_2.11:0.6.1'
+
+
 }
 
 kotlin {
-	compilerOptions {
-		freeCompilerArgs.addAll '-Xjsr305=strict'
-	}
+    compilerOptions {
+        freeCompilerArgs.addAll '-Xjsr305=strict'
+    }
 }
 
 tasks.register('copyPreCommitHook', Copy) {

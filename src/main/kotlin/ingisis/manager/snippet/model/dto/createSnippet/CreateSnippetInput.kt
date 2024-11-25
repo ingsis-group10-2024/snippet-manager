@@ -9,6 +9,7 @@ data class CreateSnippetInput(
     val content: String,
     @NotNull
     val language: String,
+    val languageVersion: String = "1.1", // Default value
     @NotNull
-    val version: String,
+    val extension: String,
 )
