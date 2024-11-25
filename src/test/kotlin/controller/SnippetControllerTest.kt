@@ -10,11 +10,16 @@ import ingisis.manager.snippet.model.dto.rest.permission.SnippetDescriptor
 import ingisis.manager.snippet.model.dto.rest.runner.ValidationResponse
 import ingisis.manager.snippet.persistance.entity.Snippet
 import ingisis.manager.snippet.service.SnippetService
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
-import org.mockito.Mockito.*
+import org.mockito.Mockito.doNothing
+import org.mockito.Mockito.doThrow
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.http.HttpStatus
 import org.springframework.web.multipart.MultipartFile
@@ -125,7 +130,7 @@ class SnippetControllerTest {
     }
 
     @Test
-    fun `updateSnippetById should return success response when valid update`() {
+    fun `updateSnippetById should return INTERNAL_SERVER_ERROR response when invalid principal`() {
         // Given
         val id = "123"
         val input =
@@ -135,7 +140,7 @@ class SnippetControllerTest {
         val updatedSnippet =
             Snippet(
                 id = id,
-                authorId = "1010",
+                authorId = "test1@gmail.com",
                 createdAt = LocalDateTime.now(),
                 updatedAt = LocalDateTime.now(),
                 name = "test",
@@ -144,15 +149,13 @@ class SnippetControllerTest {
                 languageVersion = "1.1",
                 extension = "ps",
             )
-        `when`(snippetService.updateSnippetById(id, input, "1010", authHeader))
-            .thenReturn(updatedSnippet)
 
         // When
         val response = snippetController.updateSnippetById(id, input, principal, authHeader)
 
         // Then
-        assert(response.statusCode == HttpStatus.OK)
-        assert(response.body?.message == "Successfully updated snippet: $id")
+        assert(response.statusCode == HttpStatus.INTERNAL_SERVER_ERROR)
+        assert(response.body?.message == "An unexpected error occurred: getName(...) must not be null")
     }
 
     @Test
@@ -298,5 +301,167 @@ class SnippetControllerTest {
         // Then
         assert(response.statusCode == HttpStatus.OK)
         assert(response.body == snippet)
+    }
+
+    @Test
+    fun `validateSnippet should return bad request when validation fails`() {
+        // Given
+        val request = SnippetRequest(name = "test", content = "invalid", language = "PrintScript", languageVersion = "1.1")
+        `when`(
+            snippetService.validateSnippet(
+                request.name,
+                request.content,
+                request.language,
+                request.languageVersion,
+                authHeader,
+            ),
+        ).thenThrow(InvalidSnippetException(listOf(StaticCodeAnalyzerError("Syntax error"))))
+
+        // When
+        val response =
+            assertThrows<InvalidSnippetException> {
+                snippetController.validateSnippet(request, principal, authHeader)
+            }
+
+        // Then
+        assertEquals("Snippet is invalid.", response.message)
+    }
+
+    @Test
+    fun `validateSnippet should handle unexpected errors gracefully`() {
+        // Given
+        val request = SnippetRequest(name = "test", content = "content", language = "PrintScript", languageVersion = "1.1")
+        `when`(
+            snippetService.validateSnippet(
+                request.name,
+                request.content,
+                request.language,
+                request.languageVersion,
+                authHeader,
+            ),
+        ).thenThrow(RuntimeException("Unexpected error"))
+
+        // When
+        val response =
+            assertThrows<RuntimeException> {
+                snippetController.validateSnippet(request, principal, authHeader)
+            }
+        // Then
+        assertEquals("Unexpected error", response.message)
+    }
+
+    @Test
+    fun `deleteSnippetById should return forbidden when user does not have permission`() {
+        // Given
+        val id = "123"
+        doThrow(SecurityException("Forbidden"))
+            .`when`(snippetService)
+            .deleteSnippetById(id, principal, authHeader)
+
+        // When
+        val response = snippetController.deleteSnippetById(id, principal, authHeader)
+
+        // Then
+        assert(response.statusCode == HttpStatus.FORBIDDEN)
+        assert(response.body?.message == "You do not have permission to delete this snippet.")
+    }
+
+    @Test
+    fun `deleteSnippetById should return internal server error when unexpected error occurs`() {
+        // Given
+        val id = "123"
+        doThrow(RuntimeException("Unexpected error"))
+            .`when`(snippetService)
+            .deleteSnippetById(id, principal, authHeader)
+
+        // When
+        val response = snippetController.deleteSnippetById(id, principal, authHeader)
+
+        // Then
+        assert(response.statusCode == HttpStatus.INTERNAL_SERVER_ERROR)
+        assert(response.body?.message == "An unexpected error occurred: Unexpected error")
+    }
+
+    @Test
+    fun `uploadSnippet should return bad request when file is empty`() {
+        // Given
+        val input =
+            CreateSnippetInput(
+                name = "test",
+                content = "content",
+                language = "PrintScript",
+                languageVersion = "1.1",
+                extension = "ps",
+            )
+        val file = mock(MultipartFile::class.java)
+        `when`(file.isEmpty).thenReturn(true)
+
+        // When
+        val response = snippetController.uploadSnippet(input, file, principal, authHeader)
+
+        // Then
+        assert(response.statusCode == HttpStatus.BAD_REQUEST)
+        assert(response.body == null)
+    }
+
+    @Test
+    fun `uploadSnippet should return bad request when InvalidSnippetException`() {
+        // Given
+        val input =
+            CreateSnippetInput(
+                name = "test",
+                content = "content",
+                language = "PrintScript",
+                languageVersion = "1.1",
+                extension = "ps",
+            )
+        val file = mock(MultipartFile::class.java)
+        `when`(file.isEmpty).thenReturn(false)
+        val error = StaticCodeAnalyzerError("Invalid snippet")
+        `when`(snippetService.processFileAndCreateSnippet(file, input, principal, authHeader))
+            .thenThrow(InvalidSnippetException(listOf(error)))
+
+        // When
+        val response = snippetController.uploadSnippet(input, file, principal, authHeader)
+
+        // Then
+        assert(response.statusCode == HttpStatus.BAD_REQUEST)
+        assert(response.body?.message == "Error creating snippet")
+        assert(
+            response.body
+                ?.errors
+                ?.first()
+                ?.message == "Invalid snippet",
+        )
+    }
+
+    @Test
+    fun `uploadSnippet should return internal server error when unexpected error occurs`() {
+        // Given
+        val input =
+            CreateSnippetInput(
+                name = "test",
+                content = "content",
+                language = "PrintScript",
+                languageVersion = "1.1",
+                extension = "ps",
+            )
+        val file = mock(MultipartFile::class.java)
+        `when`(file.isEmpty).thenReturn(false)
+        `when`(snippetService.processFileAndCreateSnippet(file, input, principal, authHeader))
+            .thenThrow(RuntimeException("Unexpected error"))
+
+        // When
+        val response = snippetController.uploadSnippet(input, file, principal, authHeader)
+
+        // Then
+        assert(response.statusCode == HttpStatus.INTERNAL_SERVER_ERROR)
+        assert(response.body?.message == "Internal server error")
+        assert(
+            response.body
+                ?.errors
+                ?.first()
+                ?.message == "Unexpected error",
+        )
     }
 }

@@ -47,7 +47,6 @@ class OAuth2ResourceServerSecurityConfiguration(
         return http.build()
     }
 
-
     @Bean
     fun corsConfigurationSource(): UrlBasedCorsConfigurationSource {
         val source = UrlBasedCorsConfigurationSource()
