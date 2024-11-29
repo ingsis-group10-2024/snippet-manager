@@ -54,7 +54,7 @@ class OAuth2ResourceServerSecurityConfiguration(
 
         config.applyPermitDefaultValues()
         config.allowCredentials = true
-        config.allowedOrigins = listOf("http://localhost:5173", "http://printscript-ui:80")
+        config.allowedOrigins = listOf("http://localhost:5173", "https://printscript-group10.duckdns.org")
         config.allowedHeaders = listOf("authorization", "content-type", "*")
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
 
