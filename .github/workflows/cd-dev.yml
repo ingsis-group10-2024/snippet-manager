@@ -51,12 +51,13 @@ jobs:
           username: "mcchicken"
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd snippet-infra
+            cd snippet-infra 
             sudo su
-            docker container stop manager-local
-            docker container rm manager-local
-            docker-compose -f docker-compose.yml pull app
-            docker-compose -f docker-compose.yml up -d app
-            docker image prune -f
+            docker container stop snippet-manager  
+            docker container rm snippet-manager  
+            docker-compose -f docker-compose.yml pull manager  
+            docker-compose -f docker-compose.yml up -d manager  
+            docker image prune -f  
+  
             
             
