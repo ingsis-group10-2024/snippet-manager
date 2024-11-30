@@ -17,8 +17,7 @@ class RedisSnippetValidationProducer
         @Qualifier("reactiveRedisTemplate") redis: ReactiveRedisTemplate<String, String>,
     ) : RedisStreamProducer(streamKey, redis),
         SnippetValidationProducer {
-
-    private val logger: Logger = LoggerFactory.getLogger(RedisSnippetValidationProducer::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(RedisSnippetValidationProducer::class.java)
 
         override suspend fun publishValidationMessage(
             ruleType: String,

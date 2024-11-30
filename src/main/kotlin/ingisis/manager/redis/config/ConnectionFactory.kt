@@ -20,9 +20,6 @@ class ConnectionFactory(
         )
 
     @Bean
-    fun reactiveRedisTemplate(
-        connectionFactory: LettuceConnectionFactory
-    ): ReactiveRedisTemplate<String, String> {
-        return ReactiveRedisTemplate(connectionFactory, RedisSerializationContext.string())
-    }
+    fun reactiveRedisTemplate(connectionFactory: LettuceConnectionFactory): ReactiveRedisTemplate<String, String> =
+        ReactiveRedisTemplate(connectionFactory, RedisSerializationContext.string())
 }
