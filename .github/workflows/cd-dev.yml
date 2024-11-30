@@ -52,8 +52,11 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd snippet-infra
-            docker compose -f docker-compose.yml stop
-            git pull
-            docker compose -f docker-compose.yml up -d --build
+            sudo su
+            docker container stop snippet-manager
+            docker container rm snippet-manager
+            docker-compose -f docker-compose.yml pull snippet-manager
+            docker-compose -f docker-compose.yml up -d snippet-manager
+            docker image prune -f
             
             
