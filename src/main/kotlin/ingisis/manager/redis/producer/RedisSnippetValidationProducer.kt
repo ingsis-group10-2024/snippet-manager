@@ -1,6 +1,5 @@
 package ingisis.manager.redis.producer
 
-import ingisis.manager.redis.model.SnippetsValidationMessage
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -17,11 +16,23 @@ class RedisSnippetValidationProducer
         SnippetValidationProducer {
         override suspend fun publishValidationMessage(
             ruleType: String,
-            snippetsValidationMessage: SnippetsValidationMessage,
+            snippetJson: String,
         ) {
             println("Publishing validation message to stream: $streamKey")
 
             // Emit the validation message to Redis stream
-            emit(snippetsValidationMessage).awaitSingle() // `awaitSingle()` ensures the operation is completed asynchronously
+            if (checkRedisConnection()) {
+                // `awaitSingle()` ensures the operation is completed asynchronously
+                emit(snippetJson).awaitSingle()
+            }
+        }
+
+    private fun checkRedisConnection(): Boolean {
+        return try {
+            redis.opsForValue().get("ping").block() != null
+        } catch (e: Exception) {
+            false
         }
     }
+
+}

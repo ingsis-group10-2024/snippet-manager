@@ -1,7 +1,7 @@
 package ingisis.manager.rule.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import ingisis.manager.redis.model.SnippetToValidate
-import ingisis.manager.redis.model.SnippetsValidationMessage
 import ingisis.manager.redis.producer.SnippetValidationProducer
 import ingisis.manager.rule.exception.RuleNotFoundException
 import ingisis.manager.rule.exception.UnauthorizedAccessException
@@ -53,16 +53,16 @@ class RuleService
             logger.info("Creating or updating rules for user: $userId and rule type: $ruleType")
             val rulesToSave =
                 newRules.map { dto ->
-                    val existingRule =
-                        if (dto.id != null) {
-                            ruleRepository.findByUserIdAndNameAndType(userId = userId, name = dto.name, type = ruleType)
-                        } else {
-                            null
-                        }
+                    val existingRule = ruleRepository.findByUserIdAndNameAndType(
+                        userId = userId,
+                        name = dto.name,
+                        type = ruleType
+                    )
 
                     if (existingRule != null) {
                         // If rule exists, update it
                         logger.info("Rule already exists. Updating it with id: ${existingRule.id}")
+                        logger.info("Rule to update: $dto")
                         existingRule.apply {
                             isActive = dto.isActive
                             value = dto.value
@@ -99,28 +99,27 @@ class RuleService
             authorizationHeader: String
         ) {
             logger.info("Sending validation message for rule type: $ruleType")
-            val validationMessage =
-                SnippetsValidationMessage(
+
+            snippetsToValidate.forEach { snippet ->
+                val snippetToValidate = SnippetToValidate(
+                    id = snippet.id,
+                    authorId = snippet.authorId,
+                    name = snippet.name,
+                    content = snippet.content,
+                    language = snippet.language,
+                    languageVersion = snippet.languageVersion,
+                    extension = snippet.extension,
                     ruleType = ruleType.name,
-                    snippets =
-                        snippetsToValidate.map { snippet ->
-                            SnippetToValidate(
-                                id = snippet.id,
-                                authorId = snippet.authorId,
-                                name = snippet.name,
-                                content = snippetService.getSnippetContent(snippet.content),
-                                language = snippet.language,
-                                languageVersion = snippet.languageVersion,
-                                extension = snippet.extension,
-                            )
-                        },
-                    authorizationHeader = authorizationHeader,
+                    authorizationHeader = authorizationHeader
                 )
-            logger.info("Validation message: $validationMessage")
-            // Send the snippets to the validation service
-            mono {
-                validationProducer.publishValidationMessage(ruleType.name, validationMessage)
-            }.subscribe()
+
+                val snippetJson = ObjectMapper().writeValueAsString(snippetToValidate)
+                logger.info("Sending snippet: $snippetJson to runner service for validation")
+                // Send the snippets to the validation service
+                mono {
+                    validationProducer.publishValidationMessage(ruleType.name, snippetJson)
+                }.subscribe()
+            }
         }
 
         fun deleteRule(
