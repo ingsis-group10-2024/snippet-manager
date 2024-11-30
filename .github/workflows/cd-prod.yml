@@ -47,11 +47,14 @@ jobs:
       - name: Update and Restart Manager Infrastructure
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.PROD_URL }}
+          host: ${{ secrets.DEV_URL }}
           username: "mcchicken"
-          key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd snippet-infra
-            docker compose -f docker-compose.yml stop
-            git pull
-            docker compose -f docker-compose.yml up -d --build
+            cd snippet-infra 
+            sudo su
+            docker container stop snippet-manager  
+            docker container rm snippet-manager  
+            docker-compose -f docker-compose.prod.yml pull manager  
+            docker-compose -f docker-compose.prod.yml up -d manager  
+            docker image prune -f 
