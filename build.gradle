@@ -61,6 +61,12 @@ dependencies {
     implementation 'com.newrelic.agent.java:newrelic-api:6.5.0'
     implementation 'com.gilt:lib-newrelic-logback_2.11:0.6.1'
 
+    //unitary tests
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.10.0")
+    testImplementation("org.mockito:mockito-core:5.7.0")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.7.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
 
 }
 

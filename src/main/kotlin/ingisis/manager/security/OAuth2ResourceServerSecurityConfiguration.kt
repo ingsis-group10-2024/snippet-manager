@@ -3,8 +3,6 @@ package ingisis.manager.security
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.HttpMethod.GET
-import org.springframework.http.HttpMethod.POST
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator
@@ -30,14 +28,6 @@ class OAuth2ResourceServerSecurityConfiguration(
                 it
                     .requestMatchers("/")
                     .permitAll()
-                    .requestMatchers(GET, "manager/snippets/get/{snippetId}")
-                    .hasAuthority("SCOPE_read:snippet")
-                    .requestMatchers(GET, "/manager/snippet")
-                    .hasAuthority("SCOPE_read:snippet")
-                    .requestMatchers(GET, "/manager/snippet/**")
-                    .hasAuthority("SCOPE_read:snippet")
-                    .requestMatchers(POST, "/manager/snippet")
-                    .hasAuthority("SCOPE_create:snippet")
                     .anyRequest()
                     .authenticated()
             }.oauth2ResourceServer {
@@ -54,7 +44,7 @@ class OAuth2ResourceServerSecurityConfiguration(
 
         config.applyPermitDefaultValues()
         config.allowCredentials = true
-        config.allowedOrigins = listOf("http://localhost:5173", "http://printscript-ui:80")
+        config.allowedOrigins = listOf("http://localhost:5173", "https://printscript-group10.duckdns.org")
         config.allowedHeaders = listOf("authorization", "content-type", "*")
         config.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS")
 

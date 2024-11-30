@@ -38,4 +38,26 @@ jobs:
             AUTH_CLIENT_ID=${{ secrets.AUTH_CLIENT_ID }}
             AUTH_CLIENT_SECRET=${{ secrets.AUTH_CLIENT_SECRET }}
 
+  deploy:
+    name: Manager deployment
+    runs-on: ubuntu-latest
+    needs: build-and-publish
 
+    steps:
+      - name: Update and Restart Manager Infrastructure
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEV_URL }}
+          username: "mcchicken"
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd snippet-infra 
+            sudo su
+            docker container stop snippet-manager  
+            docker container rm snippet-manager  
+            docker-compose -f docker-compose.yml pull manager  
+            docker-compose -f docker-compose.yml up -d manager  
+            docker image prune -f  
+  
+            
+            
