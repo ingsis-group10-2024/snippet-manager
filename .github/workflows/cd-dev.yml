@@ -53,10 +53,10 @@ jobs:
           script: |
             cd snippet-infra
             sudo su
-            docker container stop snippet-manager
-            docker container rm snippet-manager
-            docker-compose -f docker-compose.yml pull snippet-manager
-            docker-compose -f docker-compose.yml up -d snippet-manager
+            docker container stop snippet-local
+            docker container rm snippet-local
+            docker-compose -f docker-compose.yml pull app
+            docker-compose -f docker-compose.yml up -d app
             docker image prune -f
             
             
