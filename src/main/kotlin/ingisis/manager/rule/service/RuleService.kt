@@ -1,12 +1,17 @@
 package ingisis.manager.rule.service
 
 import ingisis.manager.redis.model.RuleChangeEvent
+import ingisis.manager.redis.model.SnippetToValidate
+import ingisis.manager.redis.model.SnippetsValidationMessage
+import ingisis.manager.redis.producer.SnippetValidationProducer
 import ingisis.manager.rule.exception.RuleNotFoundException
 import ingisis.manager.rule.exception.UnauthorizedAccessException
 import ingisis.manager.rule.model.dto.RuleDTO
 import ingisis.manager.rule.model.enums.RuleTypeEnum
 import ingisis.manager.rule.persistance.entity.Rule
 import ingisis.manager.rule.persistance.repository.RuleRepository
+import ingisis.manager.snippet.persistance.entity.Snippet
+import ingisis.manager.snippet.service.SnippetService
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,8 +23,9 @@ class RuleService
     @Autowired
     constructor(
         private val ruleRepository: RuleRepository,
-        private val ruleChangerProducer: RedisRuleChangerProducer,
-    ) {
+        private val snippetService: SnippetService,
+        private val validationProducer: SnippetValidationProducer,
+        ) {
         private val logger: Logger = LoggerFactory.getLogger(RuleService::class.java)
 
         fun getRules(
@@ -76,19 +82,43 @@ class RuleService
                 }
             logger.info("Saving rules: $rulesToSave")
             val savedRules = ruleRepository.saveAll(rulesToSave).map { RuleDTO(it) }
-            logger.info("Calling producer to publish rule change event")
-            // Call the producer to publish the changed rules event
-            mono {
-                val ruleChangeEvent =
-                    RuleChangeEvent(
-                        ruleType = ruleType.name,
-                        userId = userId,
-                        timestamp = System.currentTimeMillis(),
-                    )
-                ruleChangerProducer.publishRuleChangeEvent(ruleChangeEvent)
-            }.subscribe()
 
+            // Get all the user's snippets to validate
+            val snippetsToValidate = snippetService.getSnippetsByUserId(userId)
+            if (snippetsToValidate.isEmpty()) {
+                logger.info("No snippets found for validation.")
+                return savedRules
+            }
+            sendValidationMessage(ruleType, snippetsToValidate)
             return savedRules
+        }
+
+        private fun sendValidationMessage(
+            ruleType: RuleTypeEnum,
+            snippetsToValidate: List<Snippet>,
+        ) {
+            logger.info("Sending validation message for rule type: $ruleType")
+            val validationMessage =
+                SnippetsValidationMessage(
+                    ruleType = ruleType.name,
+                    snippets =
+                        snippetsToValidate.map { snippet ->
+                            SnippetToValidate(
+                                id = snippet.id,
+                                authorId = snippet.authorId,
+                                name = snippet.name,
+                                content = snippetService.getSnippetContent(snippet.content),
+                                language = snippet.language,
+                                languageVersion = snippet.languageVersion,
+                                extension = snippet.extension,
+                            )
+                        },
+                )
+            logger.info("Validation message: $validationMessage")
+            // Send the snippets to the validation service
+            mono {
+                validationProducer.publishValidationMessage(ruleType.name, validationMessage)
+            }.subscribe()
         }
 
         fun deleteRule(
