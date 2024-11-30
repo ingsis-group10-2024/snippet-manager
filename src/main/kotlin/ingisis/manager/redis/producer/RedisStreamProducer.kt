@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono
 
 abstract class RedisStreamProducer(
     val streamKey: String,
-    val redis: ReactiveRedisTemplate<String, String>
+    val redis: ReactiveRedisTemplate<String, String>,
 ) {
     // we use Any as upper bound of Value to make it non-nullable
     inline fun <reified Value : Any> emit(value: Value): Mono<RecordId> {

@@ -9,5 +9,5 @@ data class SnippetToValidate(
     val languageVersion: String,
     var extension: String,
     val ruleType: String,
-    val authorizationHeader: String
+    val authorizationHeader: String,
 )

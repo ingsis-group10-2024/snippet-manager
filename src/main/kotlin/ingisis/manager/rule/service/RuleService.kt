@@ -24,7 +24,7 @@ class RuleService
         private val ruleRepository: RuleRepository,
         private val snippetService: SnippetService,
         private val validationProducer: SnippetValidationProducer,
-        ) {
+    ) {
         private val logger: Logger = LoggerFactory.getLogger(RuleService::class.java)
 
         fun getRules(
@@ -48,16 +48,17 @@ class RuleService
             newRules: List<RuleDTO>,
             ruleType: RuleTypeEnum,
             userId: String,
-            authorizationHeader: String
+            authorizationHeader: String,
         ): List<RuleDTO> {
             logger.info("Creating or updating rules for user: $userId and rule type: $ruleType")
             val rulesToSave =
                 newRules.map { dto ->
-                    val existingRule = ruleRepository.findByUserIdAndNameAndType(
-                        userId = userId,
-                        name = dto.name,
-                        type = ruleType
-                    )
+                    val existingRule =
+                        ruleRepository.findByUserIdAndNameAndType(
+                            userId = userId,
+                            name = dto.name,
+                            type = ruleType,
+                        )
 
                     if (existingRule != null) {
                         // If rule exists, update it
@@ -96,28 +97,31 @@ class RuleService
         private fun sendValidationMessage(
             ruleType: RuleTypeEnum,
             snippetsToValidate: List<Snippet>,
-            authorizationHeader: String
+            authorizationHeader: String,
         ) {
             logger.info("Sending validation message for rule type: $ruleType")
 
             snippetsToValidate.forEach { snippet ->
-                val snippetToValidate = SnippetToValidate(
-                    id = snippet.id,
-                    authorId = snippet.authorId,
-                    name = snippet.name,
-                    content = snippet.content,
-                    language = snippet.language,
-                    languageVersion = snippet.languageVersion,
-                    extension = snippet.extension,
-                    ruleType = ruleType.name,
-                    authorizationHeader = authorizationHeader
-                )
+                val snippetToValidate =
+                    SnippetToValidate(
+                        id = snippet.id,
+                        authorId = snippet.authorId,
+                        name = snippet.name,
+                        content = snippetService.getSnippetContent(snippet.content),
+                        language = snippet.language,
+                        languageVersion = snippet.languageVersion,
+                        extension = snippet.extension,
+                        ruleType = ruleType.name,
+                        authorizationHeader = authorizationHeader,
+                    )
 
                 val snippetJson = ObjectMapper().writeValueAsString(snippetToValidate)
                 logger.info("Sending snippet: $snippetJson to runner service for validation")
                 // Send the snippets to the validation service
                 mono {
                     validationProducer.publishValidationMessage(ruleType.name, snippetJson)
+                }.doOnTerminate {
+                    logger.info("Finished processing publishValidationMessage.")
                 }.subscribe()
             }
         }

@@ -48,8 +48,8 @@ class TestCaseController(
     fun testSnippet(
         @RequestBody testCaseDTO: TestCaseDTO,
         @RequestHeader("Authorization") authorizationHeader: String,
-    ): ResponseEntity<TestCaseResult> {
-        return try {
+    ): ResponseEntity<TestCaseResult> =
+        try {
             val result = testCaseService.executeTestCase(testCaseDTO, authorizationHeader)
 
             // Returns the result of the test case
@@ -57,17 +57,15 @@ class TestCaseController(
         } catch (e: RuntimeException) {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null)
         }
-    }
 
     @DeleteMapping("/{id}")
     fun deleteTestCase(
         @PathVariable id: String,
-    ): ResponseEntity<String> {
-        return try {
+    ): ResponseEntity<String> =
+        try {
             testCaseService.deleteTestCase(id)
             ResponseEntity.status(HttpStatus.NO_CONTENT).body("Test case deleted successfully")
         } catch (e: RuntimeException) {
             ResponseEntity.status(HttpStatus.NOT_FOUND).body("Test case not found")
         }
-    }
 }
