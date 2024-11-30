@@ -54,7 +54,7 @@ jobs:
             cd snippet-infra
             sudo su
             docker container stop manager-local
-            docker container rm snippet-local
+            docker container rm manager-local
             docker-compose -f docker-compose.yml pull app
             docker-compose -f docker-compose.yml up -d app
             docker image prune -f
