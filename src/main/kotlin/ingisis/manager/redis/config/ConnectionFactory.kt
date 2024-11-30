@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
+import org.springframework.data.redis.core.ReactiveRedisTemplate
+import org.springframework.data.redis.serializer.RedisSerializationContext
 
 @Configuration
 class ConnectionFactory(
@@ -16,4 +18,8 @@ class ConnectionFactory(
         LettuceConnectionFactory(
             RedisStandaloneConfiguration(hostName, port),
         )
+
+    @Bean
+    fun reactiveRedisTemplate(connectionFactory: LettuceConnectionFactory): ReactiveRedisTemplate<String, String> =
+        ReactiveRedisTemplate(connectionFactory, RedisSerializationContext.string())
 }
