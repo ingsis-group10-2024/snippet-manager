@@ -1,6 +1,5 @@
 package ingisis.manager.rule.service
 
-import ingisis.manager.redis.model.RuleChangeEvent
 import ingisis.manager.redis.model.SnippetToValidate
 import ingisis.manager.redis.model.SnippetsValidationMessage
 import ingisis.manager.redis.producer.SnippetValidationProducer
@@ -49,6 +48,7 @@ class RuleService
             newRules: List<RuleDTO>,
             ruleType: RuleTypeEnum,
             userId: String,
+            authorizationHeader: String
         ): List<RuleDTO> {
             logger.info("Creating or updating rules for user: $userId and rule type: $ruleType")
             val rulesToSave =
@@ -89,13 +89,14 @@ class RuleService
                 logger.info("No snippets found for validation.")
                 return savedRules
             }
-            sendValidationMessage(ruleType, snippetsToValidate)
+            sendValidationMessage(ruleType, snippetsToValidate, authorizationHeader)
             return savedRules
         }
 
         private fun sendValidationMessage(
             ruleType: RuleTypeEnum,
             snippetsToValidate: List<Snippet>,
+            authorizationHeader: String
         ) {
             logger.info("Sending validation message for rule type: $ruleType")
             val validationMessage =
@@ -113,6 +114,7 @@ class RuleService
                                 extension = snippet.extension,
                             )
                         },
+                    authorizationHeader = authorizationHeader,
                 )
             logger.info("Validation message: $validationMessage")
             // Send the snippets to the validation service
