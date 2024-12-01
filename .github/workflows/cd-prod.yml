@@ -20,7 +20,7 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          username: ${{ secrets.ACTOR }}
           password: ${{ secrets.GHCR_TOKEN }}
 
       - name: Build and Push to GitHub Packages
@@ -47,9 +47,9 @@ jobs:
       - name: Update and Restart Manager Infrastructure
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.DEV_URL }}
+          host: ${{ secrets.PROD_URL }}
           username: "mcchicken"
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
           script: |
             cd snippet-infra 
             sudo su
