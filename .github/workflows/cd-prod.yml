@@ -47,7 +47,7 @@ jobs:
       - name: Update and Restart Manager Infrastructure
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.DEV_URL }}
+          host: ${{ secrets.PROD_URL }}
           username: "mcchicken"
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
