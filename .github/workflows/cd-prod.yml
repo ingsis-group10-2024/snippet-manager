@@ -49,7 +49,7 @@ jobs:
         with:
           host: ${{ secrets.PROD_URL }}
           username: "mcchicken"
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          key: ${{ secrets.SSH_PRIVATE_KEY_PROD }}
           script: |
             cd snippet-infra 
             sudo su
