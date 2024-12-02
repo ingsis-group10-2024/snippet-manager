@@ -57,4 +57,4 @@ jobs:
             docker container rm snippet-manager  
             docker-compose -f docker-compose.prod.yml pull manager  
             docker-compose -f docker-compose.prod.yml up -d manager  
-            docker image prune -f 
+            docker image prune -f
