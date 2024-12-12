@@ -227,5 +227,4 @@ class SnippetController(
 
     @GetMapping("/topo")
     fun getTopo(): String = "Hola Topo"
-
 }
