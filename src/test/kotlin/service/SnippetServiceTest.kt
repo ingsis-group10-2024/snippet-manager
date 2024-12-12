@@ -363,4 +363,69 @@ class SnippetServiceTest {
         assertEquals(0, result.totalElements)
         assertTrue(result.snippets.isEmpty())
     }
+
+    @Test
+    fun deleteSnippetById_throwsException_whenUserHasNoPermission() {
+        val id = "1"
+        val principal = Principal { "test2@gmail.com" }
+        val authorizationHeader = "Bearer token"
+        val snippet =
+            Snippet(
+                id = "1",
+                name = "Test Snippet",
+                content = "http://azurite/blob",
+                language = "Python",
+                languageVersion = "3.8",
+                authorId = "test1@gmail.com",
+                extension = "py",
+            )
+
+        whenever(repository.findById(id)).thenReturn(Optional.of(snippet))
+        whenever(restTemplate.postForEntity(any<String>(), any(), any<Class<*>>())).thenReturn(
+            ResponseEntity.ok(
+                listOf("READ"),
+            ),
+        )
+
+        val exception =
+            assertThrows<SecurityException> {
+                snippetService.deleteSnippetById(id, principal, authorizationHeader)
+            }
+
+        assertEquals("User does not have permission to delete this snippet.", exception.message)
+    }
+
+    @Test
+    fun getSnippetsByUserId_returnsEmptyList_whenNoSnippetsExist() {
+        val userId = "test1@gmail.com"
+
+        whenever(repository.findByAuthorId(userId)).thenReturn(emptyList())
+
+        val result = snippetService.getSnippetsByUserId(userId)
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun getSnippetContent_returnsContent_whenContentExists() {
+        val id = "1"
+        val content = "print('Hello, World!')"
+
+        whenever(azuriteService.getSnippetContent(id)).thenReturn(content.byteInputStream())
+
+        val result = snippetService.getSnippetContent(id)
+
+        assertEquals(content, result)
+    }
+
+    @Test
+    fun getSnippetContent_returnsErrorMessage_whenContentDoesNotExist() {
+        val id = "1"
+
+        whenever(azuriteService.getSnippetContent(id)).thenReturn(null)
+
+        val result = snippetService.getSnippetContent(id)
+
+        assertEquals("Content not available", result)
+    }
 }
