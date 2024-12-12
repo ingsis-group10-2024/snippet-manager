@@ -43,7 +43,7 @@ class SnippetControllerTest {
     @Test
     fun `validateSnippet should return validation response`() {
         // Given
-        val rquest =
+        val request =
             SnippetRequest(
                 name = "test",
                 content = "content",
