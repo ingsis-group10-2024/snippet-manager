@@ -428,4 +428,42 @@ class SnippetServiceTest {
 
         assertEquals("Content not available", result)
     }
+
+    @Test
+    fun validateSnippet_returnsValidationResponse_whenSnippetIsValid() {
+        val name = "Test Snippet"
+        val content = "print('Hello, World!')"
+        val language = "Python"
+        val languageVersion = "3.8"
+        val authorizationHeader = "Bearer token"
+        val validationResponse = ValidationResponse(name, true, content, emptyList())
+
+        whenever(restTemplate.postForEntity(any<String>(), any(), any<Class<*>>())).thenReturn(
+            ResponseEntity.ok(validationResponse),
+        )
+
+        val result = snippetService.validateSnippet(name, content, language, languageVersion, authorizationHeader)
+
+        assertEquals(validationResponse, result)
+    }
+
+    @Test
+    fun validateSnippet_throwsException_whenValidationFails() {
+        val name = "Test Snippet"
+        val content = "print('Hello, World!')"
+        val language = "Python"
+        val languageVersion = "3.8"
+        val authorizationHeader = "Bearer token"
+
+        whenever(restTemplate.postForEntity(any<String>(), any(), any<Class<*>>())).thenReturn(
+            ResponseEntity.status(500).build(),
+        )
+
+        val exception =
+            assertThrows<Exception> {
+                snippetService.validateSnippet(name, content, language, languageVersion, authorizationHeader)
+            }
+
+        assertEquals("Error validating snippet: 500 INTERNAL_SERVER_ERROR", exception.message)
+    }
 }

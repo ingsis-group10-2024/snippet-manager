@@ -1,5 +1,6 @@
 package service
 
+import ingisis.manager.snippet.exception.SnippetNotFoundException
 import ingisis.manager.snippet.model.dto.rest.permission.SnippetDescriptor
 import ingisis.manager.snippet.service.SnippetService
 import ingisis.manager.testCases.model.TestCaseDTO
@@ -87,25 +88,6 @@ class TestCaseServiceTest {
         assertEquals("Test Case", result.name)
         verify(testCaseRepository).save(any())
     }
-
-//    @Test
-//    fun `createTestCase should throw SnippetNotFoundException when snippet not found`() {
-//        // Arrange
-//        val testCaseDTO =
-//            TestCaseDTO(
-//                id = "snippet1",
-//                name = "Test Case",
-//                input = listOf("print('Hello')"),
-//                output = listOf("Hello"),
-//            )
-//        val authHeader = "Bearer token"
-//
-//
-//        // Assert
-//        assertThrows(SnippetNotFoundException::class.java) {
-//            testCaseService.createTestCase(testCaseDTO)
-//        }
-//    }
 
     @Test
     fun `getTestCase should return test case when exists`() {
@@ -217,5 +199,45 @@ class TestCaseServiceTest {
         assertThrows(RuntimeException::class.java) {
             testCaseService.executeTestCase(testCaseDTO, authHeader)
         }
+    }
+
+    @Test
+    fun `getAllTestCases should return empty list when no test cases exist`() {
+        `when`(testCaseRepository.findAll()).thenReturn(emptyList())
+
+        val result = testCaseService.getAllTestCases()
+
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `createTestCase should throw exception when snippet does not exist`() {
+        // Arrange
+        val snippetId = "nonexistentSnippet"
+        val testCaseDTO =
+            TestCaseDTO(
+                id = snippetId,
+                name = "Test Case",
+                input = listOf("print('Hello')"),
+                output = listOf("Hello"),
+            )
+        `when`(snippetService.getSnippetById(snippetId)).thenThrow(SnippetNotFoundException::class.java)
+
+        // Assert
+        assertThrows(SnippetNotFoundException::class.java) {
+            testCaseService.createTestCase(testCaseDTO)
+        }
+    }
+
+    @Test
+    fun `deleteTestCase should throw specific exception when test case not found`() {
+        `when`(testCaseRepository.findById("invalidId")).thenReturn(Optional.empty())
+
+        val exception =
+            assertThrows(RuntimeException::class.java) {
+                testCaseService.deleteTestCase("invalidId")
+            }
+
+        assertEquals("Test case not found", exception.message)
     }
 }
