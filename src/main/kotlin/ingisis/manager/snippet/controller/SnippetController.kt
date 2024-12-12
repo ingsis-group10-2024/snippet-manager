@@ -226,8 +226,6 @@ class SnippetController(
     ): ResponseEntity<SnippetDescriptor> = ResponseEntity.ok(snippetService.getSnippetDescriptor(snippetId, authorizationHeader))
 
     @GetMapping("/topo")
-    fun getTopo() : String{
-        return "Hola Topo";
-    }
+    fun getTopo(): String = "Hola Topo"
 
 }
